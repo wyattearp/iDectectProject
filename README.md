@@ -5,17 +5,17 @@ iDectectProject
 
 Lab 1 Requirements
 ==================
-<s>A1. iDetect shall support a minimum of 4 networked nodes.<\s> - done
+<s>A1. iDetect shall support a minimum of 4 networked nodes.</s> - done
 
-<s>A2. The failure of any single node shall be reported by at least one non-faulty node within 8 seconds. It may be assumed that RTCs among the nodes are synchronized (e.g., using NTP).<\s> - done
+<s>A2. The failure of any single node shall be reported by at least one non-faulty node within 8 seconds. It may be assumed that RTCs among the nodes are synchronized (e.g., using NTP).</s> - done
 
-<s>A3. The failure of any two nodes simultaneously shall be reported by at least one working node within 10 seconds.<\s> - done
+<s>A3. The failure of any two nodes simultaneously shall be reported by at least one working node within 10 seconds.</s> - done
 
-<s>A4. iDetect shall produce no false positive reports of failure when no packets are lost in network communications.<\s> - done
+<s>A4. iDetect shall produce no false positive reports of failure when no packets are lost in network communications.</s> - done
 
-<s>A5. iDetect shall produce no more than 1 false positive report in any 5 second period when 20% of packets are lost at random in network communications.<\s> - done
+<s>A5. iDetect shall produce no more than 1 false positive report in any 5 second period when 20% of packets are lost at random in network communications.</s> - done
 
-<s>A6. The network overhead bandwidth used for failure detection should be minimized.<\s> - done
+<s>A6. The network overhead bandwidth used for failure detection should be minimized.</s> - done
 
 Lab 2 Requirements
 ==================
