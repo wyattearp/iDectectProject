@@ -12,12 +12,6 @@ import java.util.Calendar;
 
 public class Node implements Serializable {
 
-	static enum NodeState {
-		UNKNOWN,
-		ONLINE,
-		OFFLINE
-	}
-
 	private static final long serialVersionUID = 9034156178527052520L;
 
 	private final int id;	
