@@ -43,5 +43,10 @@ public class NodeTableModel extends AbstractTableModel {
 		}
 		return null;
 	}
+	
+	@Override
+	public boolean isCellEditable(int row, int col) {
+		return false;
+	}
 
 }
