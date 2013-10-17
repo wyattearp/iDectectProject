@@ -20,8 +20,7 @@ public class Node implements Serializable {
 
 	private static final long serialVersionUID = 9034156178527052520L;
 
-	private final int id;
-	
+	private final int id;	
 	private long lastCheckinRcv;
 	private long lastCheckinSent;
 	private int seqHighWaterMark;
