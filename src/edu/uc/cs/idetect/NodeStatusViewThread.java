@@ -28,4 +28,30 @@ public class NodeStatusViewThread implements Runnable {
 		viewFrame.setVisible(true);
 	}
 
+	public JFrame getViewFrame() {
+		return viewFrame;
+	}
+
+	public void setViewFrame(JFrame viewFrame) {
+		this.viewFrame = viewFrame;
+	}
+
+	public NodeStatusView getNodeStatusView() {
+		return nodeStatusView;
+	}
+
+	public void setNodeStatusView(NodeStatusView nodeStatusView) {
+		this.nodeStatusView = nodeStatusView;
+	}
+
+	public int getNodeID() {
+		return nodeID;
+	}
+
+	public void setNodeID(int nodeID) {
+		this.nodeID = nodeID;
+	}
+	
+	
+
 }

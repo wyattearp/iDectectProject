@@ -23,4 +23,26 @@ public class NodeStatusView extends JPanel {
 		this.add(viewScrollPane);
 	}
 
+	public JTable getViewTable() {
+		return viewTable;
+	}
+
+	public void setViewTable(JTable viewTable) {
+		this.viewTable = viewTable;
+	}
+
+	public JScrollPane getViewScrollPane() {
+		return viewScrollPane;
+	}
+
+	public void setViewScrollPane(JScrollPane viewScrollPane) {
+		this.viewScrollPane = viewScrollPane;
+	}
+
+	public static long getSerialversionuid() {
+		return serialVersionUID;
+	}
+	
+	
+
 }
