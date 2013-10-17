@@ -49,6 +49,11 @@ public class NodeTableModel extends AbstractTableModel {
 	}
 	
 	@Override
+	public void setValueAt(Object value, int row, int col) {
+		
+	}
+	
+	@Override
 	public boolean isCellEditable(int row, int col) {
 		return false;
 	}

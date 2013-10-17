@@ -6,11 +6,16 @@ public class NodeStatusViewThread implements Runnable {
 
 	private JFrame viewFrame;
 	private NodeStatusView nodeStatusView;
+	private int nodeID;
+	
+	public NodeStatusViewThread(int id) {
+		this.nodeID = id;
+	}
 
 	@Override
 	public void run() {
 		//Create and setup the window
-		viewFrame = new JFrame("Node Status View");
+		viewFrame = new JFrame("Node Status View - " + this.nodeID);
 		viewFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		//Create and setup the content pane

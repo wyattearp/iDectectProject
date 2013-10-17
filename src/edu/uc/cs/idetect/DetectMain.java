@@ -35,14 +35,15 @@ public class DetectMain implements HeartbeatListener {
 
 	public DetectMain(int nodeId, int port, List<Integer> peers) throws UnknownHostException {
 		
-		NodeStatusViewThread statusView = new NodeStatusViewThread();
+		
 		this.logger = new LogHelper(nodeId, System.out, System.err, null);
 		this.nodeId = nodeId;
 		this.commWrapper = new MulticastWrapper(MCAST_GROUP_IP, port, nodeId, logger);
-		this.nodes = new HashMap<>();
-		this.failedNodes = new LinkedList<>();
+		this.nodes = new HashMap<Integer, Node>();
+		this.failedNodes = new LinkedList<Node>();
 		this.heartbeatLock = new ReentrantLock();
 		this.scheduledExecutor = new ScheduledThreadPoolExecutor(1);	//TODO
+		NodeStatusViewThread statusView = new NodeStatusViewThread(this.nodeId); // TODO: move to where this will finally be
 		new Thread(statusView).start();
 		for (int peer : peers) {
 			this.nodes.put(peer, new Node(peer));
@@ -176,7 +177,7 @@ public class DetectMain implements HeartbeatListener {
 			port = Integer.parseInt(args[1]);
 		}
 		
-		List<Integer> peers = new LinkedList<>();
+		List<Integer> peers = new LinkedList<Integer>();
 		for (int i = 2; i < args.length; i++) {
 			peers.add(Integer.parseInt(args[i]));
 		}

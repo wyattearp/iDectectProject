@@ -32,7 +32,7 @@ class LogHelper implements Logger {
 		this.outStream = out;
 		this.errStream = err;
 		this.dbgStream = dbg;
-		this.logQueue = new LinkedBlockingQueue<>();
+		this.logQueue = new LinkedBlockingQueue<LogEntry>();
 		this.writerThread = Executors.defaultThreadFactory().newThread(new Runnable() {
 			@Override
 			public void run() {
