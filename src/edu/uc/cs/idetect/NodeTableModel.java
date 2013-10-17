@@ -17,6 +17,10 @@ public class NodeTableModel extends AbstractTableModel {
 	private ArrayList<Node> nodeList = new ArrayList<Node>();
 
 	@Override
+	public String getColumnName(int col) {
+		return columnNames[col];
+	}
+	@Override
 	public int getColumnCount() {
 		return this.columnNames.length;
 	}
