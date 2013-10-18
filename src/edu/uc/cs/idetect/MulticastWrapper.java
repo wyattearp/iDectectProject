@@ -36,7 +36,7 @@ public class MulticastWrapper<T extends Message> implements CommsWrapper<T> {
 	private Logger logger;
 	
 	//DEBUG only
-	private List<Integer> rands = new LinkedList<>();
+	private List<Integer> rands = new LinkedList<Integer>();
 	
 	public MulticastWrapper(String ip, int port, int myId, MessageFactory<T> factory, Logger logger) throws UnknownHostException {
 		this.logger = logger;
