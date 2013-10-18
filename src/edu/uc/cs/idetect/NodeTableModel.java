@@ -15,6 +15,11 @@ public class NodeTableModel extends AbstractTableModel {
 			"Current State"
 	};
 	private ArrayList<Node> nodeList = new ArrayList<Node>();
+	
+	public void addItem(Node n) {
+		// TODO: Since we only ever add nodes once, this should probably be fine
+		nodeList.add(n);
+	}
 
 	@Override
 	public String getColumnName(int col) {

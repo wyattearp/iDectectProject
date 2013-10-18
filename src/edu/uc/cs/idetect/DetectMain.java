@@ -32,6 +32,7 @@ public class DetectMain implements HeartbeatListener {
 	private List<Node> failedNodes;
 	private Thread detectorThread;
 	private LogHelper logger;
+	private NodeStatusViewThread statusViewThread;
 
 	public DetectMain(int nodeId, int port, List<Integer> peers) throws UnknownHostException {
 		
@@ -43,7 +44,7 @@ public class DetectMain implements HeartbeatListener {
 		this.failedNodes = new LinkedList<Node>();
 		this.heartbeatLock = new ReentrantLock();
 		this.scheduledExecutor = new ScheduledThreadPoolExecutor(1);	//TODO
-		NodeStatusViewThread statusViewThread = new NodeStatusViewThread(this.nodeId); // TODO: move to where this will finally be
+		this.statusViewThread = new NodeStatusViewThread(this.nodeId); // TODO: move to where this will finally be
 		new Thread(statusViewThread).start();
 		for (int peer : peers) {
 			this.nodes.put(peer, new Node(peer));
@@ -120,7 +121,21 @@ public class DetectMain implements HeartbeatListener {
 			this.heartbeatLock.lock();
 			if (!nodes.containsKey(status.getNodeId())) {
 				logger.log("Discovered new node - " + status.getNodeId());
-				this.nodes.put(status.getNodeId(), new Node(status));
+				Node n = new Node(status);
+				this.nodes.put(status.getNodeId(), n);
+				// TODO: add the node to the table UI, try/finally because UI can be slow sometimes
+				// TODO: there's probably something else weird because for some reason, i'm not seeing all nodes
+				try {
+					if (this.statusViewThread != null) {
+						if (this.statusViewThread.getNodeStatusView() != null) {
+							if (this.statusViewThread.getNodeStatusView().getNodeTable() != null) {
+								this.statusViewThread.getNodeStatusView().getNodeTable().addItem(n);
+							}
+						}
+					}	
+				} finally {
+					
+				}
 			} else {
 				logger.debug("Received heartbeat from node " + status.getNodeId());
 				if (this.nodes.get(status.getNodeId()).updateStatus(status)) {
@@ -145,6 +160,12 @@ public class DetectMain implements HeartbeatListener {
 			if (!nodes.containsKey(node.getId())) {
 				logger.log("Discovered new node (offline) - " + node.getId());
 				this.nodes.put(node.getId(), Node.createFailedNode(node.getId(), node.getSeqHighWaterMark()));
+				// TODO: tell the table to update when we've received updated information, try/finally because UI can be slow sometimes
+				try {
+					this.statusViewThread.getNodeStatusView().getNodeTable().fireTableDataChanged();
+				} finally {
+					
+				}
 			} else {
 				Node localNode = nodes.get(node.getId());
 				if (! localNode.isOffline() && localNode.getSeqHighWaterMark() <= node.getSeqHighWaterMark()) {

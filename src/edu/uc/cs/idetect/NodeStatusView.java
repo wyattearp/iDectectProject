@@ -12,10 +12,20 @@ public class NodeStatusView extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private JTable viewTable;
 	private JScrollPane viewScrollPane;
+	private NodeTableModel nodeTable;
+
+	public NodeTableModel getNodeTable() {
+		return nodeTable;
+	}
+
+	public void setNodeTable(NodeTableModel nodeTable) {
+		this.nodeTable = nodeTable;
+	}
 
 	public NodeStatusView() {
 		super(new GridLayout(1,0));
-		viewTable = new JTable(new NodeTableModel());
+		nodeTable = new NodeTableModel();
+		viewTable = new JTable(this.nodeTable);
 		viewTable.setPreferredScrollableViewportSize(new Dimension(500,70));
 		viewTable.setFillsViewportHeight(true);
 		
