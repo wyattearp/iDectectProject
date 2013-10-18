@@ -9,7 +9,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-public class MulticastWrapper implements CommsWrapper {
+import edu.uc.cs.distsys.Message;
+import edu.uc.cs.distsys.MessageFactory;
+
+public class MulticastWrapper<T extends Message> implements CommsWrapper<T> {
+
+	private static final String MCAST_GROUP_IP = "224.0.0.224";
 
 	private Random rng;
 	private long rngSeed;
@@ -22,6 +27,7 @@ public class MulticastWrapper implements CommsWrapper {
 	private long inboundReceived;
 	
 	private final int myId;
+	private final MessageFactory<T> messageFactory;
 
 	private InetAddress mcastGroup;
 	private int port;
@@ -32,11 +38,12 @@ public class MulticastWrapper implements CommsWrapper {
 	//DEBUG only
 	private List<Integer> rands = new LinkedList<>();
 	
-	public MulticastWrapper(String ip, int port, int myId, Logger logger) throws UnknownHostException {
+	public MulticastWrapper(String ip, int port, int myId, MessageFactory<T> factory, Logger logger) throws UnknownHostException {
 		this.logger = logger;
 		this.mcastGroup = InetAddress.getByName(ip);
 		this.port = port;
 		this.myId = myId;
+		this.messageFactory = factory;
 		this.packetLoss = Integer.parseInt(System.getProperty("packetloss", "0"));
 		this.rngSeed = System.currentTimeMillis();
 		this.rng = new Random(this.rngSeed);
@@ -44,8 +51,12 @@ public class MulticastWrapper implements CommsWrapper {
 		logger.debug(" DEBUG: pktLoss = " + this.packetLoss);
 	}
 	
+	public MulticastWrapper(int port, int myId, MessageFactory<T> factory, Logger logger) throws UnknownHostException {
+		this(MCAST_GROUP_IP, port, myId, factory, logger);
+	}
+	
 	@Override
-	public void send(Heartbeat heartbeat) throws IOException {		
+	public void send(T msg) throws IOException {		
 		
 		//DEBUG
 		if ((outboundDropped + outboundSent) % 10 == 0) {
@@ -61,20 +72,8 @@ public class MulticastWrapper implements CommsWrapper {
 		this.outboundSent++;
 		MulticastSocket socket = new MulticastSocket();
 		try {
-			byte[] rawHb = heartbeat.serialize();
+			byte[] rawHb = msg.serialize();
 			DatagramPacket packet = new DatagramPacket(rawHb, rawHb.length, this.mcastGroup, port);
-			if (heartbeat.getFailedNodes().size() > 0) {
-				String msg = "Sending notification of " + heartbeat.getFailedNodes().size() + " failed nodes: {";
-				for (Node n : heartbeat.getFailedNodes())
-					msg += n.getId() + ", ";
-				msg += "}";
-				logger.log(msg);
-			} else {
-				//DEBUG:
-				logger.debug("Sending heartbeat with " + 
-									heartbeat.getFailedNodes().size() + " failed nodes");
-				//DEBUG
-			}
 			socket.send(packet);
 		} finally {
 			socket.close();
@@ -82,7 +81,7 @@ public class MulticastWrapper implements CommsWrapper {
 	}
 
 	@Override
-	public Heartbeat receive() throws IOException {
+	public T receive() throws IOException {
 
 		//DEBUG
 		if ((inboundDropped + inboundReceived) % 10 == 0) {
@@ -90,25 +89,25 @@ public class MulticastWrapper implements CommsWrapper {
 		}
 		//DEBUG
 
-		Heartbeat hb = null;
+		T msg = null;
 		if (this.recvSocket == null) {
 			this.recvSocket = new MulticastSocket(this.port);
 			this.recvSocket.joinGroup(this.mcastGroup);
 		}
-		while (hb == null) {
+		while (msg == null) {
 			byte[] buf = new byte[1500];
 			DatagramPacket packet = new DatagramPacket(buf, buf.length);
 			this.recvSocket.receive(packet);
-			hb = Heartbeat.deserialize(buf);
-			if (hb.getNodeId() == this.myId)
-				hb = null;
+			msg = this.messageFactory.create(buf);
+			if (msg.getSenderId() == this.myId)
+				msg = null;
 		}
 		if (shouldDropPacket()) {
 			this.inboundDropped++;
 			throw new IOException("Inbound packet dropped #" + this.inboundDropped + " of " + this.inboundReceived);
 		}
 		this.inboundReceived++;		
-		return hb;
+		return msg;
 	}
 	
 	@Override

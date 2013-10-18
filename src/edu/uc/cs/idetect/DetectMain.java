@@ -13,20 +13,21 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class DetectMain implements HeartbeatListener {
+import edu.uc.cs.distsys.MessageListener;
+import edu.uc.cs.distsys.NotifyThread;
+
+public class DetectMain implements MessageListener<Heartbeat> {
 
 	private static final long HB_INIT_DELAY		 = 0;
 	private static final long FAIL_DETECT_PERIOD = 5;
 	static final long HB_PERIOD			 		 = 1;
 
-	private static final String MCAST_GROUP_IP = "224.0.0.224";
-		
 	private final int nodeId;
 	private final ScheduledExecutorService scheduledExecutor;
 
 	private int nextSeqNum;
 
-	private CommsWrapper commWrapper;
+	private CommsWrapper<Heartbeat> commWrapper;
 	private Lock heartbeatLock;
 	private HashMap<Integer, Node> nodes;
 	private List<Node> failedNodes;
@@ -36,7 +37,7 @@ public class DetectMain implements HeartbeatListener {
 	public DetectMain(int nodeId, int port, List<Integer> peers) throws UnknownHostException {
 		this.logger = new LogHelper(nodeId, System.out, System.err, null);
 		this.nodeId = nodeId;
-		this.commWrapper = new MulticastWrapper(MCAST_GROUP_IP, port, nodeId, logger);
+		this.commWrapper = new MulticastWrapper<Heartbeat>(port, nodeId, new Heartbeat.HeartbeatFactory(), logger);
 		this.nodes = new HashMap<>();
 		this.failedNodes = new LinkedList<>();
 		this.heartbeatLock = new ReentrantLock();
@@ -48,7 +49,7 @@ public class DetectMain implements HeartbeatListener {
 
 	public void start() {
 		this.detectorThread = Executors.defaultThreadFactory().newThread(
-				new DetectorThread(this.nodeId, this.commWrapper, this, logger));
+				new NotifyThread<>(this.nodeId, this.commWrapper, this, logger));
 		this.detectorThread.start();
 		
 		this.scheduledExecutor.scheduleAtFixedRate(new Runnable() {
@@ -57,7 +58,18 @@ public class DetectMain implements HeartbeatListener {
 				long curTime = System.currentTimeMillis();
 				try {
 					heartbeatLock.lock();
-					//List<Node> failedNodes = getFailedNodes(curTime);
+					if (failedNodes.size() > 0) {
+						String msg = "Sending notification of " + failedNodes.size() + " failed nodes: {";
+						for (Node n : failedNodes)
+							msg += n.getId() + ", ";
+						msg += "}";
+						logger.log(msg);
+					} else {
+						//DEBUG:
+						logger.debug("Sending heartbeat with " + 
+								failedNodes.size() + " failed nodes");
+						//DEBUG
+					}
 					commWrapper.send(new Heartbeat(nodeId, nextSeqNum++, curTime, failedNodes));
 					failedNodes.clear();
 				} catch (IOException e) {
@@ -109,7 +121,7 @@ public class DetectMain implements HeartbeatListener {
 	}
 
 	@Override
-	public void notifyHeartbeat(Heartbeat status) {
+	public void notify(Heartbeat status) {
 //		if (status.getNodeId() == this.nodeId)
 //			return;
 		try {

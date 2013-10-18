@@ -2,10 +2,12 @@ package edu.uc.cs.idetect;
 
 import java.io.IOException;
 
-public interface CommsWrapper {
+import edu.uc.cs.distsys.Message;
+
+public interface CommsWrapper<T extends Message> {
 	
-	public void send(Heartbeat heartbeat) throws IOException;
-	public Heartbeat receive() throws IOException;
+	public void send(T heartbeat) throws IOException;
+	public T receive() throws IOException;
 	public void close();
 
 }
