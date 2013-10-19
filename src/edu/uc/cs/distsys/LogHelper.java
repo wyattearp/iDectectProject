@@ -1,4 +1,4 @@
-package edu.uc.cs.idetect;
+package edu.uc.cs.distsys;
 
 import java.io.PrintStream;
 import java.text.SimpleDateFormat;
@@ -7,7 +7,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
-class LogHelper implements Logger {
+public class LogHelper implements Logger {
 	
 	private static class LogEntry {
 		public final String m;

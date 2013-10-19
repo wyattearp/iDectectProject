@@ -1,4 +1,4 @@
-package edu.uc.cs.distsys;
+package edu.uc.cs.distsys.comms;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

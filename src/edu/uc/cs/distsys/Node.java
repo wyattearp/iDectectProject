@@ -1,4 +1,4 @@
-package edu.uc.cs.idetect;
+package edu.uc.cs.distsys;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -9,6 +9,9 @@ import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Calendar;
+
+import edu.uc.cs.distsys.idetect.DetectMain;
+import edu.uc.cs.distsys.idetect.Heartbeat;
 
 public class Node implements Serializable {
 

@@ -1,4 +1,4 @@
-package edu.uc.cs.idetect;
+package edu.uc.cs.distsys.ui;
 
 import java.awt.Dimension;
 import java.awt.GridLayout;

@@ -1,9 +1,8 @@
-package edu.uc.cs.distsys;
+package edu.uc.cs.distsys.comms;
 
 import java.io.IOException;
 
-import edu.uc.cs.idetect.CommsWrapper;
-import edu.uc.cs.idetect.Logger;
+import edu.uc.cs.distsys.Logger;
 
 public class NotifyThread<T extends Message> implements Runnable {
 	

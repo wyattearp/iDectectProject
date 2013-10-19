@@ -1,4 +1,4 @@
-package edu.uc.cs.idetect;
+package edu.uc.cs.distsys.comms;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -9,8 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-import edu.uc.cs.distsys.Message;
-import edu.uc.cs.distsys.MessageFactory;
+import edu.uc.cs.distsys.Logger;
 
 public class MulticastWrapper<T extends Message> implements CommsWrapper<T> {
 

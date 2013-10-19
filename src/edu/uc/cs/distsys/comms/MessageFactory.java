@@ -1,4 +1,4 @@
-package edu.uc.cs.distsys;
+package edu.uc.cs.distsys.comms;
 
 public interface MessageFactory<T extends Message> {
 	

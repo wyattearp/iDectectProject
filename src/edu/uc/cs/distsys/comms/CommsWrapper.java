@@ -1,8 +1,6 @@
-package edu.uc.cs.idetect;
+package edu.uc.cs.distsys.comms;
 
 import java.io.IOException;
-
-import edu.uc.cs.distsys.Message;
 
 public interface CommsWrapper<T extends Message> {
 	

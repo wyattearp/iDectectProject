@@ -1,10 +1,11 @@
-package edu.uc.cs.idetect;
+package edu.uc.cs.distsys.idetect;
 
 import java.util.LinkedList;
 import java.util.List;
 
-import edu.uc.cs.distsys.Message;
-import edu.uc.cs.distsys.MessageFactory;
+import edu.uc.cs.distsys.Node;
+import edu.uc.cs.distsys.comms.Message;
+import edu.uc.cs.distsys.comms.MessageFactory;
 
 public class Heartbeat extends Message {
 

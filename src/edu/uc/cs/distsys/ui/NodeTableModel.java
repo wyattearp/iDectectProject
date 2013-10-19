@@ -1,8 +1,10 @@
-package edu.uc.cs.idetect;
+package edu.uc.cs.distsys.ui;
 
 import java.util.ArrayList;
 
 import javax.swing.table.AbstractTableModel;
+
+import edu.uc.cs.distsys.Node;
 
 public class NodeTableModel extends AbstractTableModel {
 

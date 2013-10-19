@@ -1,4 +1,4 @@
-package edu.uc.cs.idetect;
+package edu.uc.cs.distsys.ui;
 
 import javax.swing.JFrame;
 
