@@ -29,10 +29,10 @@ public class ElectionMessage extends Message {
 		this.id = id;
 	}
 	
-	public static class ElectionFactory implements MessageFactory<Election> {
+	public static class ElectionFactory implements MessageFactory<ElectionMessage> {
 		@Override
-		public Election create(byte[] rawMsg) {
-			return (Election) Message.deserialize(rawMsg);
+		public ElectionMessage create(byte[] rawMsg) {
+			return (ElectionMessage) Message.deserialize(rawMsg);
 		}
 		
 	}
