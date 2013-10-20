@@ -60,7 +60,7 @@ public class DetectMain implements MessageListener<Heartbeat> {
 	}
 	
 	public void stop() {
-		this.logger.log("Node shutting down");
+		this.logger.log("Detector shutting down");
 		this.scheduledExecutor.shutdownNow();
 		this.detectorThread.interrupt();
 	}
