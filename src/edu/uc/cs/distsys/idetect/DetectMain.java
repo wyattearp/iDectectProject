@@ -41,7 +41,7 @@ public class DetectMain implements MessageListener<Heartbeat> {
 		this.failedNodes = new LinkedList<Node>();
 		this.heartbeatLock = new ReentrantLock();
 		this.scheduledExecutor = new ScheduledThreadPoolExecutor(1);	//TODO
-		this.statusViewThread = new NodeStatusViewThread(this.nodeId); // TODO: move to where this will finally be
+		this.statusViewThread = new NodeStatusViewThread(this.nodeId); 
 		new Thread(statusViewThread).start();
 		for (int peer : peers) {
 			this.nodes.put(peer, new Node(peer));

@@ -13,6 +13,8 @@ public class NodeStatusView extends JPanel {
 	private JTable viewTable;
 	private JScrollPane viewScrollPane;
 	private NodeTableModel nodeTable;
+	private static final int tableWidth = 800;
+	private static final int tableHeight = 100;
 
 	public NodeTableModel getNodeTable() {
 		return nodeTable;
@@ -26,9 +28,11 @@ public class NodeStatusView extends JPanel {
 		super(new GridLayout(1,0));
 		nodeTable = new NodeTableModel();
 		viewTable = new JTable(this.nodeTable);
-		viewTable.setPreferredScrollableViewportSize(new Dimension(500,70));
+		viewTable.setPreferredScrollableViewportSize(new Dimension(tableWidth,tableHeight));
+		viewTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 		viewTable.setFillsViewportHeight(true);
 		
+		// attach the table to the UI pane
 		viewScrollPane = new JScrollPane(viewTable);
 		this.add(viewScrollPane);
 	}
@@ -52,7 +56,4 @@ public class NodeStatusView extends JPanel {
 	public static long getSerialversionuid() {
 		return serialVersionUID;
 	}
-	
-	
-
 }

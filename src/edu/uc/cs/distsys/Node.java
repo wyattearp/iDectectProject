@@ -22,6 +22,8 @@ public class Node implements Serializable {
 	private long lastCheckinSent;
 	private int seqHighWaterMark;
 	private NodeState state;
+	private int leaderId;
+	private int groupId;
 	
 	public static Node createFailedNode(int id, int seqNum) {
 		return new Node(id, seqNum, 0, 0, NodeState.OFFLINE);
@@ -162,4 +164,22 @@ public class Node implements Serializable {
 		}
 		return node;
 	}
+
+	public int getLeaderId() {
+		return leaderId;
+	}
+
+	public void setLeaderId(int leaderId) {
+		this.leaderId = leaderId;
+	}
+
+	public int getGroupId() {
+		return groupId;
+	}
+
+	public void setGroupId(int groupId) {
+		this.groupId = groupId;
+	}
+	
+	
 }
