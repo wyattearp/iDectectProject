@@ -12,6 +12,12 @@ public class ElectionMessage extends Message {
 	public ElectionMessage(int nodeId) {
 		super(nodeId);
 	}
+	
+	public ElectionMessage(int nodeId,int transactionId) {
+		super(nodeId);
+		this.id = nodeId;
+		this.transactionId = transactionId;
+	}
 
 	public int getTransactionId() {
 		return transactionId;
