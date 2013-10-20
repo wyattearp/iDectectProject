@@ -2,6 +2,8 @@ package edu.uc.cs.distsys.ui;
 
 import javax.swing.JFrame;
 
+import edu.uc.cs.distsys.Node;
+
 public class NodeStatusViewThread implements Runnable {
 
 	private JFrame viewFrame;
@@ -10,16 +12,15 @@ public class NodeStatusViewThread implements Runnable {
 	
 	public NodeStatusViewThread(int id) {
 		this.nodeID = id;
+		//Create and setup the windows
+		viewFrame = new JFrame("Node Status View - Node ID: " + this.nodeID);
+		viewFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		nodeStatusView = new NodeStatusView();
 	}
 
 	@Override
 	public void run() {
-		//Create and setup the window
-		viewFrame = new JFrame("Node Status View - " + this.nodeID);
-		viewFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
-		//Create and setup the content pane
-		nodeStatusView = new NodeStatusView();
+		//Create and setup the content pane		
 		nodeStatusView.setOpaque(true); // apparently you always have to set this true
 		viewFrame.setContentPane(nodeStatusView);
 		
@@ -52,6 +53,12 @@ public class NodeStatusViewThread implements Runnable {
 		this.nodeID = nodeID;
 	}
 	
+	public void updateUI() {
+		this.getNodeStatusView().getNodeTable().fireTableDataChanged();
+	}
 	
+	public void addMonitoredNode(Node n) {
+		this.getNodeStatusView().getNodeTable().addItem(n);
+	}
 
 }

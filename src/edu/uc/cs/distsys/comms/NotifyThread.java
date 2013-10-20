@@ -18,6 +18,10 @@ public class NotifyThread<T extends Message> implements Runnable {
 		this.listener = listener;
 	}
 	
+	public int getMyNodeId() {
+		return myNodeId;
+	}
+	
 	@Override
 	public void run() {
 		logger.log("Starting up notify thread...");

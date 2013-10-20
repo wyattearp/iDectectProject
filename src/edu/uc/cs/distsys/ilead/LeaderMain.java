@@ -22,8 +22,8 @@ public class LeaderMain implements MessageListener<Election> {
 	public LeaderMain(int nodeId) {
 		Logger logger = null;
 		try {
-			this.electionComms = new MulticastWrapper<>(1234, nodeId, new Election.ElectionFactory(), logger);
-			this.electionThread = new Thread(new NotifyThread<>(nodeId, electionComms, this, logger));
+			this.electionComms = new MulticastWrapper<Election>(1234, nodeId, new Election.ElectionFactory(), logger);
+			this.electionThread = new Thread(new NotifyThread<Election>(nodeId, electionComms, this, logger));
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

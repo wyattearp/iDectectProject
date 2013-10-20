@@ -1,9 +1,9 @@
 package edu.uc.cs.distsys.ui;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-
+import java.util.Date;
 import javax.swing.table.AbstractTableModel;
-
 import edu.uc.cs.distsys.Node;
 
 public class NodeTableModel extends AbstractTableModel {
@@ -17,6 +17,7 @@ public class NodeTableModel extends AbstractTableModel {
 			"Current State"
 	};
 	private ArrayList<Node> nodeList = new ArrayList<Node>();
+	private static final String timeStampFormat = "yyyy-MM-dd HH:mm:ss.SSS";
 	
 	public void addItem(Node n) {
 		// TODO: Since we only ever add nodes once, this should probably be fine
@@ -40,13 +41,19 @@ public class NodeTableModel extends AbstractTableModel {
 	@Override
 	public Object getValueAt(int row, int col) {
 		Node n = (Node) nodeList.get(row);
+		Date d;
+		SimpleDateFormat df2;
 		switch (col) {
 			case 0: // Node ID
 				return n.getId();
 			case 1: // Last check-in received
-				return n.getLastCheckinRcv();
+				d = new Date(n.getLastCheckinRcv());
+				df2 = new SimpleDateFormat(timeStampFormat);
+				return df2.format(d);
 			case 2: // Last check-in sent
-				return n.getLastCheckinSent();
+				d = new Date(n.getLastCheckinSent());
+				df2 = new SimpleDateFormat(timeStampFormat);
+				return df2.format(d);
 			case 3: // Seq high water mark
 				return n.getSeqHighWaterMark();
 			case 4: // Current state

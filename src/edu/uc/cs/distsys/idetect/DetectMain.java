@@ -37,8 +37,8 @@ public class DetectMain implements MessageListener<Heartbeat> {
 	public DetectMain(int nodeId, List<Integer> peers) {
 		this.logger = new LogHelper(nodeId, System.out, System.err, null);
 		this.nodeId = nodeId;
-		this.nodes = new HashMap<>();
-		this.failedNodes = new LinkedList<>();
+		this.nodes = new HashMap<Integer, Node>();
+		this.failedNodes = new LinkedList<Node>();
 		this.heartbeatLock = new ReentrantLock();
 		this.scheduledExecutor = new ScheduledThreadPoolExecutor(1);	//TODO
 		this.statusViewThread = new NodeStatusViewThread(this.nodeId); // TODO: move to where this will finally be
@@ -51,7 +51,7 @@ public class DetectMain implements MessageListener<Heartbeat> {
 	public void start() throws UnknownHostException {
 		HeartbeatThread hbThread = new HeartbeatThread(nodeId, failedNodes, heartbeatLock, logger); 
 		this.detectorThread = Executors.defaultThreadFactory().newThread(
-				new NotifyThread<>(this.nodeId, hbThread.getCommsWrapper(), this, logger));
+				new NotifyThread<Heartbeat>(this.nodeId, hbThread.getCommsWrapper(), this, logger));
 		this.detectorThread.start();
 		this.scheduledExecutor.scheduleAtFixedRate(hbThread, HB_INIT_DELAY, HB_PERIOD, TimeUnit.SECONDS);
 		this.scheduledExecutor.scheduleAtFixedRate(
@@ -73,19 +73,7 @@ public class DetectMain implements MessageListener<Heartbeat> {
 				logger.log("Discovered new node - " + status.getNodeId());
 				Node n = new Node(status);
 				this.nodes.put(status.getNodeId(), n);
-				// TODO: add the node to the table UI, try/finally because UI can be slow sometimes
-				// TODO: there's probably something else weird because for some reason, i'm not seeing all nodes
-				try {
-					if (this.statusViewThread != null) {
-						if (this.statusViewThread.getNodeStatusView() != null) {
-							if (this.statusViewThread.getNodeStatusView().getNodeTable() != null) {
-								this.statusViewThread.getNodeStatusView().getNodeTable().addItem(n);
-							}
-						}
-					}	
-				} finally {
-					
-				}
+				this.statusViewThread.addMonitoredNode(n);
 			} else {
 				logger.debug("Received heartbeat from node " + status.getNodeId());
 				if (this.nodes.get(status.getNodeId()).updateStatus(status)) {
@@ -97,6 +85,7 @@ public class DetectMain implements MessageListener<Heartbeat> {
 					logger.error("Warning - Received out-of-order heartbeat from node " + status.getNodeId());
 				}
 			}
+			this.statusViewThread.updateUI();
 		} finally {
 			this.heartbeatLock.unlock();
 		}
@@ -110,12 +99,6 @@ public class DetectMain implements MessageListener<Heartbeat> {
 			if (!nodes.containsKey(node.getId())) {
 				logger.log("Discovered new node (offline) - " + node.getId());
 				this.nodes.put(node.getId(), Node.createFailedNode(node.getId(), node.getSeqHighWaterMark()));
-				// TODO: tell the table to update when we've received updated information, try/finally because UI can be slow sometimes
-				try {
-					this.statusViewThread.getNodeStatusView().getNodeTable().fireTableDataChanged();
-				} finally {
-					
-				}
 			} else {
 				Node localNode = nodes.get(node.getId());
 				if (! localNode.isOffline() && localNode.getSeqHighWaterMark() <= node.getSeqHighWaterMark()) {
@@ -128,6 +111,7 @@ public class DetectMain implements MessageListener<Heartbeat> {
 										node.getId() + ")");
 				}
 			}
+			this.statusViewThread.updateUI();
 		} finally {
 			this.heartbeatLock.unlock();
 		}
