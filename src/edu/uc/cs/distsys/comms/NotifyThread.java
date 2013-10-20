@@ -28,7 +28,7 @@ public class NotifyThread<T extends Message> implements Runnable {
 		try {
 			while (true) {
 				try {
-					this.listener.notify(this.commWrapper.receive());
+					this.listener.notifyMessage(this.commWrapper.receive());
 				}
 				catch (IOException e) {
 					//e.printStackTrace();

@@ -4,7 +4,7 @@ import java.io.IOException;
 
 public interface CommsWrapper<T extends Message> {
 	
-	public void send(T heartbeat) throws IOException;
+	public void send(T message) throws IOException;
 	public T receive() throws IOException;
 	public void close();
 

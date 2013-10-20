@@ -66,7 +66,7 @@ public class DetectMain implements MessageListener<Heartbeat> {
 	}
 
 	@Override
-	public void notify(Heartbeat status) {
+	public void notifyMessage(Heartbeat status) {
 		try {
 			this.heartbeatLock.lock();
 			if (!nodes.containsKey(status.getNodeId())) {
