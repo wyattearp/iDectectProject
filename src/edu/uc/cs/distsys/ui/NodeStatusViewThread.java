@@ -9,11 +9,13 @@ public class NodeStatusViewThread implements Runnable {
 	private JFrame viewFrame;
 	private NodeStatusView nodeStatusView;
 	private int nodeID;
+	private String defaultTitle = "Node Status View - Node ID: ";
 	
 	public NodeStatusViewThread(int id) {
 		this.nodeID = id;
+		this.defaultTitle += this.nodeID;
 		//Create and setup the windows
-		viewFrame = new JFrame("Node Status View - Node ID: " + this.nodeID);
+		viewFrame = new JFrame(this.defaultTitle);
 		viewFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		nodeStatusView = new NodeStatusView();
 	}
@@ -62,8 +64,11 @@ public class NodeStatusViewThread implements Runnable {
 	}
 	
 	public void setUIMessage(String uiMessage) {
-		// TODO: make this less useless
-		
+		if (uiMessage != null) {
+			this.viewFrame.setTitle(this.defaultTitle + "[" + uiMessage + "]");
+		} else {
+			this.viewFrame.setTitle(this.defaultTitle);
+		}
 	}
 
 }
