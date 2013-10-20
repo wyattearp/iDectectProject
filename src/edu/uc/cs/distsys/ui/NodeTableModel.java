@@ -14,7 +14,9 @@ public class NodeTableModel extends AbstractTableModel {
 			"Last Check-in Received",
 			"Last Check-in Sent",
 			"Seq High Water Mark",
-			"Current State"
+			"Current State",
+			"Leader ID",
+			"Group ID"
 	};
 	private ArrayList<Node> nodeList = new ArrayList<Node>();
 	private static final String timeStampFormat = "HH:mm:ss.SSS";
@@ -58,6 +60,10 @@ public class NodeTableModel extends AbstractTableModel {
 				return n.getSeqHighWaterMark();
 			case 4: // Current state
 				return n.getState();
+			case 5: // Leader ID
+				return n.getLeaderId();
+			case 6: // Group ID
+				return n.getGroupId();
 		}
 		return null;
 	}
