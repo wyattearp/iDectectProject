@@ -60,5 +60,10 @@ public class NodeStatusViewThread implements Runnable {
 	public void addMonitoredNode(Node n) {
 		this.getNodeStatusView().getNodeTable().addItem(n);
 	}
+	
+	public void setUIMessage(String uiMessage) {
+		// TODO: make this less useless
+		
+	}
 
 }

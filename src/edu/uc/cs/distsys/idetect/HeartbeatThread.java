@@ -28,7 +28,7 @@ final class HeartbeatThread implements Runnable {
 		this.failedNodes = failedNodes;
 		this.nodeLock = nodeLock;
 		this.logger = logger;
-		this.heartbeatSender = new MulticastWrapper<>(HEARTBEAT_PORT, nodeId, new Heartbeat.HeartbeatFactory(), logger);
+		this.heartbeatSender = new MulticastWrapper<Heartbeat>(HEARTBEAT_PORT, nodeId, new Heartbeat.HeartbeatFactory(), logger);
 		this.nextSeqNum = 0;
 	}
 	
