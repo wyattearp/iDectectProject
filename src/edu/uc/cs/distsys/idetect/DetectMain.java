@@ -173,6 +173,11 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 			// DEBUGGING
 			//port = new Random(System.currentTimeMillis()).nextInt(1000) + 1024;
 			node = new Random(System.currentTimeMillis()).nextInt(1000);
+		} else {
+			if (args.length >= 1) {
+				// first arg is node id
+				node = Integer.parseInt(args[0]);
+			}
 		}
 		
 		List<Integer> peers = new LinkedList<Integer>();
