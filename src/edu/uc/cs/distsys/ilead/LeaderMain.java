@@ -2,6 +2,7 @@ package edu.uc.cs.distsys.ilead;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.util.List;
 import java.util.concurrent.Executors;
 
 import edu.uc.cs.distsys.Logger;
@@ -16,7 +17,7 @@ public class LeaderMain implements ElectionTracker {
 	private static final int COORD_MSG_PORT = 5300;
 	
 	private final int myId;	
-	private LeaderChangeListener newLeaderListener;
+	private List<LeaderChangeListener> newLeaderListeners;
 	private Logger logger;
 	
 	private ElectionComms electionComms;
@@ -26,10 +27,10 @@ public class LeaderMain implements ElectionTracker {
 	
 	private Thread electionThread;
 	
-	public LeaderMain(int nodeId, LeaderChangeListener leaderListener, Logger logger) throws UnknownHostException {
+	public LeaderMain(int nodeId, List<LeaderChangeListener> leaderListeners, Logger logger) throws UnknownHostException {
 		this.myId = nodeId;
 		this.logger = logger;
-		this.newLeaderListener = leaderListener;
+		this.newLeaderListeners = leaderListeners;
 				
 		this.electionComms = new ElectionComms();
 		this.electionComms.electionComms = new MulticastWrapper<ElectionMessage>(
@@ -73,7 +74,8 @@ public class LeaderMain implements ElectionTracker {
 	
 	@Override
 	public void onNewLeader(int leaderId) {
-		this.newLeaderListener.onNewLeader(leaderId);
+		for (LeaderChangeListener listener : this.newLeaderListeners)
+			listener.onNewLeader(leaderId);
 	}
 	
 	private class ElectionListener implements MessageListener<ElectionMessage> {

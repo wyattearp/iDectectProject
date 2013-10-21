@@ -23,15 +23,15 @@ public class Heartbeat extends Message {
 	private final long timestamp;
 	private final List<Node> failedNodes;
 
-	public Heartbeat(int nodeId, int seqNum, long timestamp, List<Node> failedNodes) {
+	public Heartbeat(int nodeId, int leaderId, int seqNum, long timestamp, List<Node> failedNodes) {
 		super(nodeId);
 		this.seqNum = seqNum;
 		this.timestamp = timestamp;
 		this.failedNodes = failedNodes;
 	}
 	
-	public Heartbeat(int nodeId, int seqNum) {
-		this(nodeId, seqNum, System.currentTimeMillis(), new LinkedList<Node>());
+	public Heartbeat(int nodeId, int leaderId, int seqNum) {
+		this(nodeId, leaderId, seqNum, System.currentTimeMillis(), new LinkedList<Node>());
 	}
 
 	public int getNodeId() {

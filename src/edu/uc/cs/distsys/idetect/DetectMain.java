@@ -30,8 +30,6 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 	private final int nodeId;
 	private final ScheduledExecutorService scheduledExecutor;
 
-	private int leaderId;
-	
 	private Lock heartbeatLock;
 	private HashMap<Integer, Node> nodes;
 	private List<Node> failedNodes;
@@ -39,6 +37,7 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 	private LogHelper logger;
 	private NodeStatusViewThread statusViewThread;
 	private ElectionTracker tracker;
+	private Node myNode;
 
 	public DetectMain(int nodeId, List<Integer> peers) {
 		this.logger = new LogHelper(nodeId, System.out, System.err, null);
@@ -47,8 +46,9 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 		this.failedNodes = new LinkedList<Node>();
 		this.heartbeatLock = new ReentrantLock();
 		this.scheduledExecutor = new ScheduledThreadPoolExecutor(1);	//TODO
-		this.statusViewThread = new NodeStatusViewThread(this.nodeId); 
+		this.statusViewThread = new NodeStatusViewThread(this.nodeId);
 		new Thread(statusViewThread).start();
+		this.myNode = new Node(this.nodeId);
 		for (int peer : peers) {
 			this.nodes.put(peer, new Node(peer));
 		}
@@ -64,7 +64,10 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 				new FailureDetectionThread(nodes, failedNodes, heartbeatLock), 
 				HB_INIT_DELAY, FAIL_DETECT_PERIOD, TimeUnit.SECONDS);
 		
-		this.tracker = new LeaderMain(this.nodeId, this, logger);
+		List<LeaderChangeListener> listeners = new LinkedList<LeaderChangeListener>();
+		listeners.add(this);
+		listeners.add(hbThread);
+		this.tracker = new LeaderMain(this.nodeId, listeners, logger);
 		this.tracker.start();
 		this.tracker.startNewElection();
 	}
@@ -104,7 +107,26 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 	@Override
 	public void onNewLeader(int leaderId) {
 		this.logger.log("New Leader: " + leaderId);
-		this.leaderId = leaderId;
+		this.myNode.setLeaderId(leaderId);
+	}
+	
+	public int getLeaderId() {
+		return this.myNode.getLeaderId();
+	}
+	
+	public int getGroupId() {
+		return this.myNode.getGroupId();
+	}
+	
+	public int getId() {
+		return this.nodeId;
+	}
+	
+	/***
+	 * @return Number of known group members including self
+	 */
+	public int getNumGroupNodes() {
+		return this.nodes.size() + 1;
 	}
 	
 	private void verifyFailedNode(Node node) {
@@ -131,10 +153,6 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 		} finally {
 			this.heartbeatLock.unlock();
 		}
-	}
-	
-	public int getLeaderId() {
-		return leaderId;
 	}
 	
 	public static void main(String[] args) {
