@@ -31,8 +31,8 @@ public class NotifyThread<T extends Message> implements Runnable {
 	}
 	
 	public void addListener(MessageListener<T> listener) {
+		this.listLock.lock();
 		try {
-			this.listLock.lock();
 			this.listeners.add(listener);
 		} finally {
 			this.listLock.unlock();
@@ -40,8 +40,8 @@ public class NotifyThread<T extends Message> implements Runnable {
 	}
 	
 	public void removeListener(MessageListener<T> listener) {
+		this.listLock.lock();
 		try {
-			this.listLock.lock();
 			this.listeners.remove(listener);
 		} finally {
 			this.listLock.unlock();
@@ -56,15 +56,17 @@ public class NotifyThread<T extends Message> implements Runnable {
 				try {
 					T msg = this.commWrapper.receive();
 					this.listLock.lock();
-					for (MessageListener<T> listener : this.listeners) {
-						listener.notifyMessage(msg);
+					try {
+						for (MessageListener<T> listener : this.listeners) {
+							listener.notifyMessage(msg);
+						}
+					} finally {
+						this.listLock.unlock();
 					}
 				}
 				catch (IOException e) {
 					//e.printStackTrace();
 					logger.debug("ERROR: " + e);
-				} finally {
-					this.listLock.unlock();
 				}
 			}
 		} finally {

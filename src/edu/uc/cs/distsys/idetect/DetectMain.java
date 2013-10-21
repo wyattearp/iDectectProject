@@ -25,8 +25,8 @@ import edu.uc.cs.distsys.ui.NodeStatusViewThread;
 public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListener, FailureListener {
 
 	private static final long HB_INIT_DELAY		    = 0;
-	private static final long FAIL_DETECT_PERIOD_MS = 1000;
-	public static final long  HB_PERIOD_MS			= 750;
+	private static final long FAIL_DETECT_PERIOD_MS = 1500;
+	public static final long  HB_PERIOD_MS			= 1000;
 
 	private final int nodeId;
 	private final ScheduledExecutorService scheduledExecutor;
@@ -41,7 +41,7 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 	private Node myNode;
 
 	public DetectMain(int nodeId, List<Integer> peers) {
-		this.logger = new LogHelper(nodeId, System.out, System.err, null);
+		this.logger = new LogHelper(nodeId, System.out, System.err, System.out);
 		this.nodeId = nodeId;
 		this.nodes = new HashMap<Integer, Node>();
 		this.failedNodes = new LinkedList<Node>();
@@ -187,11 +187,13 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 		int node = 0;
 		if (args.length < 1) {
 			//System.err.println("Usage: " + args[0] + "<port#> [peer#1] ... [peer#N]");
-			
 			// DEBUGGING
 			//port = new Random(System.currentTimeMillis()).nextInt(1000) + 1024;
 			node = new Random(System.currentTimeMillis()).nextInt(1000);
 		}
+		
+		// DEBUG FOR TESTING!!!
+		//System.getProperties().setProperty("packetloss", "20");
 		
 		List<Integer> peers = new LinkedList<Integer>();
 		for (int i = 1; i < args.length; i++) {
