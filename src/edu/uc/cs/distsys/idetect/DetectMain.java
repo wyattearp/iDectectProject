@@ -38,6 +38,7 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 	private NodeStatusViewThread statusViewThread;
 	private ElectionTracker tracker;
 	private Node myNode;
+	private HeartbeatThread hbThread;
 
 	public DetectMain(int nodeId, List<Integer> peers) {
 		this.logger = new LogHelper(nodeId, System.out, System.err, null);
@@ -72,9 +73,18 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 	}
 	
 	public void stop() {
-		this.logger.log("Detector shutting down");
+		this.statusViewThread.getViewFrame().dispose();
+		hbThread.getCommsWrapper().close();
 		this.scheduledExecutor.shutdownNow();
+		try {
+			Thread.sleep(HB_PERIOD_MS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		this.detectorThread.interrupt();
+		this.tracker.stop();
+
+		this.logger.log("Detector shutting down");
 	}
 
 	@Override
