@@ -33,6 +33,7 @@ public class DetectMain implements MessageListener<Heartbeat> {
 	private Thread detectorThread;
 	private LogHelper logger;
 	private NodeStatusViewThread statusViewThread;
+	private Node myNode;
 
 	public DetectMain(int nodeId, List<Integer> peers) {
 		this.logger = new LogHelper(nodeId, System.out, System.err, null);
@@ -41,8 +42,9 @@ public class DetectMain implements MessageListener<Heartbeat> {
 		this.failedNodes = new LinkedList<Node>();
 		this.heartbeatLock = new ReentrantLock();
 		this.scheduledExecutor = new ScheduledThreadPoolExecutor(1);	//TODO
-		this.statusViewThread = new NodeStatusViewThread(this.nodeId); 
+		this.statusViewThread = new NodeStatusViewThread(this.nodeId);
 		new Thread(statusViewThread).start();
+		this.myNode = new Node(this.nodeId);
 		for (int peer : peers) {
 			this.nodes.put(peer, new Node(peer));
 		}
@@ -89,6 +91,25 @@ public class DetectMain implements MessageListener<Heartbeat> {
 		} finally {
 			this.heartbeatLock.unlock();
 		}
+	}
+	
+	public int getLeaderId() {
+		return this.myNode.getLeaderId();
+	}
+	
+	public int getGroupId() {
+		return this.myNode.getGroupId();
+	}
+	
+	public int getId() {
+		return this.nodeId;
+	}
+	
+	/***
+	 * @return Number of known group members including self
+	 */
+	public int getNumGroupNodes() {
+		return this.nodes.size() + 1;
 	}
 	
 	private void verifyFailedNode(Node node) {
