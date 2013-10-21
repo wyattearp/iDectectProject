@@ -35,6 +35,7 @@ public class Node implements Serializable {
 	
 	public Node(Heartbeat hb) {
 		this(hb.getNodeId(), hb.getSeqNum(), System.currentTimeMillis(), hb.getTimestamp(), NodeState.ONLINE);
+		this.setLeaderId(hb.getLeaderId());
 	}
 	
 	private Node(int id, int seqNum, long checkinRecv, long checkinSent, NodeState initialState) {
@@ -76,6 +77,7 @@ public class Node implements Serializable {
 	public boolean updateStatus(Heartbeat hb, long recvTime) {
 		boolean updated = false;
 		if (hb.getSeqNum() > this.seqHighWaterMark) {
+			this.leaderId = hb.getLeaderId();
 			this.lastCheckinRcv = recvTime;
 			this.lastCheckinSent = hb.getTimestamp();
 			this.seqHighWaterMark = hb.getSeqNum();

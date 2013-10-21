@@ -42,9 +42,9 @@ public class LeaderMain implements ElectionTracker {
 		this.electionComms.coordinatorComms = new MulticastWrapper<CoordinatorMessage>(
 				COORD_MSG_PORT, myId, new CoordinatorMessage.CoordinatorFactory(), logger);
 
-		this.electionComms.electionNotifier = new NotifyThread<>(nodeId, this.electionComms.electionComms, new ElectionListener(), logger);
-		this.electionComms.electionAnswerNotifier = new NotifyThread<>(nodeId, this.electionComms.electionAnswerComms, null, logger);
-		this.electionComms.coordinatorNotifier = new NotifyThread<>(nodeId, this.electionComms.coordinatorComms, new CoordinatorListener(), logger);
+		this.electionComms.electionNotifier = new NotifyThread<ElectionMessage>(nodeId, this.electionComms.electionComms, new ElectionListener(), logger);
+		this.electionComms.electionAnswerNotifier = new NotifyThread<ElectionAnswerMessage>(nodeId, this.electionComms.electionAnswerComms, null, logger);
+		this.electionComms.coordinatorNotifier = new NotifyThread<CoordinatorMessage>(nodeId, this.electionComms.coordinatorComms, new CoordinatorListener(), logger);
 		
 		this.electionMsgThread = Executors.defaultThreadFactory().newThread(electionComms.electionNotifier);
 		this.electionAnswerThread = Executors.defaultThreadFactory().newThread(electionComms.electionAnswerNotifier);

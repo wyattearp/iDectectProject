@@ -80,6 +80,7 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 	@Override
 	public void notifyMessage(Heartbeat status) {
 		try {
+			logger.log("heartbeat: " + status.getLeaderId());
 			this.heartbeatLock.lock();
 			if (!nodes.containsKey(status.getNodeId())) {
 				logger.log("Discovered new node - " + status.getNodeId());
@@ -118,6 +119,12 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 	@Override
 	public void onNewLeader(int leaderId) {
 		this.logger.log("New Leader: " + leaderId);
+		if (this.myNode.getId() == leaderId) {
+			// update our UI to say we're the current user
+			this.statusViewThread.setUIMessage("Currently The Leader");
+		} else {
+			this.statusViewThread.setUIMessage("Leader = " + leaderId);
+		}
 		this.myNode.setLeaderId(leaderId);
 	}
 	

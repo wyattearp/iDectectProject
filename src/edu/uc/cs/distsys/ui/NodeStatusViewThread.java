@@ -65,7 +65,7 @@ public class NodeStatusViewThread implements Runnable {
 	
 	public void setUIMessage(String uiMessage) {
 		if (uiMessage != null) {
-			this.viewFrame.setTitle(this.defaultTitle + "[" + uiMessage + "]");
+			this.viewFrame.setTitle(this.defaultTitle + " [" + uiMessage + "]");
 		} else {
 			this.viewFrame.setTitle(this.defaultTitle);
 		}
