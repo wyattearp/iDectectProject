@@ -44,7 +44,7 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 		this.nodes = new HashMap<Integer, Node>();
 		this.failedNodes = new LinkedList<Node>();
 		this.heartbeatLock = new ReentrantLock();
-		this.scheduledExecutor = new ScheduledThreadPoolExecutor(1);	//TODO
+		this.scheduledExecutor = new ScheduledThreadPoolExecutor(2);	//TODO
 		this.myNode = new Node(nodeId);
 		this.statusViewThread = new NodeStatusViewThread(this.myNode.getId());
 		new Thread(statusViewThread).start();
