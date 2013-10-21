@@ -107,7 +107,16 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 	@Override
 	public void onNewLeader(int leaderId) {
 		this.logger.log("New Leader: " + leaderId);
+		if (this.myNode.getId() == leaderId) {
+			// update our UI to say we're the current user
+			this.statusViewThread.setUIMessage("Currently The Leader");
+		} else {
+			this.statusViewThread.setUIMessage(null);
+		}
 		this.myNode.setLeaderId(leaderId);
+		for(Node n: this.nodes.values()) {
+			n.setLeaderId(leaderId);
+		}
 	}
 	
 	public int getLeaderId() {
