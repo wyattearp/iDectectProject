@@ -54,8 +54,8 @@ final class HeartbeatThread implements Runnable, LeaderChangeListener {
 			heartbeatSender.send(new Heartbeat(nodeId, leaderId, nextSeqNum++, curTime, failedNodes));
 			failedNodes.clear();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			logger.error("ERROR: " + e);
+			if (!Thread.currentThread().isInterrupted())
+				logger.error("ERROR: " + e);
 			//e.printStackTrace();
 		} finally {
 			nodeLock.unlock();
