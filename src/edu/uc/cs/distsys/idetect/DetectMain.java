@@ -77,11 +77,6 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 	public void stop() {
 		this.scheduledExecutor.shutdownNow();
 		this.hbThread.getCommsWrapper().close();
-		try {
-			Thread.sleep(HB_PERIOD_MS);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
 		this.detectorThread.interrupt();
 		this.uiThread.interrupt();
 		this.tracker.stop();
