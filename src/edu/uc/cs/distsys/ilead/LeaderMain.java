@@ -58,6 +58,7 @@ public class LeaderMain implements ElectionTracker {
 		this.coordinatorThread.start();
 	}
 
+	@Override
 	public void stop() {
 		this.electionComms.electionComms.close();
 		this.electionComms.electionAnswerComms.close();
