@@ -97,7 +97,7 @@ public class Node implements Serializable {
 		Calendar curTime = Calendar.getInstance();
 		Calendar lastCheckinTime = Calendar.getInstance();
 		curTime.setTimeInMillis(currentTime);
-		curTime.add(Calendar.SECOND, (int) (-1 * DetectMain.HB_PERIOD));
+		curTime.add(Calendar.MILLISECOND, (int) (-1 * DetectMain.HB_PERIOD_MS));
 		lastCheckinTime.setTimeInMillis(this.getLastCheckinRcv());
 		if (lastCheckinTime.before(curTime)) {
 			offline = true;

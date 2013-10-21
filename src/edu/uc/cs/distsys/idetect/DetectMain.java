@@ -23,9 +23,9 @@ import edu.uc.cs.distsys.ui.NodeStatusViewThread;
 
 public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListener, FailureListener {
 
-	private static final long HB_INIT_DELAY		 = 0;
-	private static final long FAIL_DETECT_PERIOD = 5;
-	public static final long  HB_PERIOD			 = 1;
+	private static final long HB_INIT_DELAY		    = 0;
+	private static final long FAIL_DETECT_PERIOD_MS = 1000;
+	public static final long  HB_PERIOD_MS			= 750;
 
 	private final int nodeId;
 	private final ScheduledExecutorService scheduledExecutor;
@@ -59,9 +59,9 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 		this.detectorThread = Executors.defaultThreadFactory().newThread(
 				new NotifyThread<Heartbeat>(this.nodeId, hbThread.getCommsWrapper(), this, logger));
 		this.detectorThread.start();
-		this.scheduledExecutor.scheduleAtFixedRate(hbThread, HB_INIT_DELAY, HB_PERIOD, TimeUnit.SECONDS);
+		this.scheduledExecutor.scheduleAtFixedRate(hbThread, HB_INIT_DELAY, HB_PERIOD_MS, TimeUnit.MILLISECONDS);
 		FailureDetectionThread fdt = new FailureDetectionThread(nodes, heartbeatLock, this);
-		this.scheduledExecutor.scheduleAtFixedRate(fdt, HB_INIT_DELAY, FAIL_DETECT_PERIOD, TimeUnit.SECONDS);
+		this.scheduledExecutor.scheduleAtFixedRate(fdt, HB_INIT_DELAY, FAIL_DETECT_PERIOD_MS, TimeUnit.MILLISECONDS);
 		
 		List<LeaderChangeListener> listeners = new LinkedList<LeaderChangeListener>();
 		listeners.add(this);
@@ -80,7 +80,6 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 	@Override
 	public void notifyMessage(Heartbeat status) {
 		try {
-			logger.log("heartbeat: " + status.getLeaderId());
 			this.heartbeatLock.lock();
 			if (!nodes.containsKey(status.getNodeId())) {
 				logger.log("Discovered new node - " + status.getNodeId());
