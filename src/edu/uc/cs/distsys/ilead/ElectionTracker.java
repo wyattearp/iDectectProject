@@ -1,8 +1,10 @@
 package edu.uc.cs.distsys.ilead;
 
-public interface ElectionTracker {
+import java.net.UnknownHostException;
 
-	public void answerElectionQuery(ElectionMessage msg);
+public interface ElectionTracker extends LeaderChangeListener {
+
+	public void start() throws UnknownHostException;
 	public void startNewElection();
 	
 }

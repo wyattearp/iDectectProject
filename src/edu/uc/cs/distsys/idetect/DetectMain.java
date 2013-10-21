@@ -16,9 +16,12 @@ import edu.uc.cs.distsys.LogHelper;
 import edu.uc.cs.distsys.Node;
 import edu.uc.cs.distsys.comms.MessageListener;
 import edu.uc.cs.distsys.comms.NotifyThread;
+import edu.uc.cs.distsys.ilead.ElectionTracker;
+import edu.uc.cs.distsys.ilead.LeaderChangeListener;
+import edu.uc.cs.distsys.ilead.LeaderMain;
 import edu.uc.cs.distsys.ui.NodeStatusViewThread;
 
-public class DetectMain implements MessageListener<Heartbeat> {
+public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListener	 {
 
 	private static final long HB_INIT_DELAY		 = 0;
 	private static final long FAIL_DETECT_PERIOD = 5;
@@ -27,12 +30,15 @@ public class DetectMain implements MessageListener<Heartbeat> {
 	private final int nodeId;
 	private final ScheduledExecutorService scheduledExecutor;
 
+	private int leaderId;
+	
 	private Lock heartbeatLock;
 	private HashMap<Integer, Node> nodes;
 	private List<Node> failedNodes;
 	private Thread detectorThread;
 	private LogHelper logger;
 	private NodeStatusViewThread statusViewThread;
+	private ElectionTracker tracker;
 
 	public DetectMain(int nodeId, List<Integer> peers) {
 		this.logger = new LogHelper(nodeId, System.out, System.err, null);
@@ -57,6 +63,10 @@ public class DetectMain implements MessageListener<Heartbeat> {
 		this.scheduledExecutor.scheduleAtFixedRate(
 				new FailureDetectionThread(nodes, failedNodes, heartbeatLock), 
 				HB_INIT_DELAY, FAIL_DETECT_PERIOD, TimeUnit.SECONDS);
+		
+		this.tracker = new LeaderMain(this.nodeId, this, logger);
+		this.tracker.start();
+		this.tracker.startNewElection();
 	}
 	
 	public void stop() {
@@ -91,6 +101,12 @@ public class DetectMain implements MessageListener<Heartbeat> {
 		}
 	}
 	
+	@Override
+	public void onNewLeader(int leaderId) {
+		this.logger.log("New Leader: " + leaderId);
+		this.leaderId = leaderId;
+	}
+	
 	private void verifyFailedNode(Node node) {
 		if (node.getId() == this.nodeId)
 			return;
@@ -115,6 +131,10 @@ public class DetectMain implements MessageListener<Heartbeat> {
 		} finally {
 			this.heartbeatLock.unlock();
 		}
+	}
+	
+	public int getLeaderId() {
+		return leaderId;
 	}
 	
 	public static void main(String[] args) {
@@ -146,4 +166,5 @@ public class DetectMain implements MessageListener<Heartbeat> {
 			e.printStackTrace();
 		}
 	}
+
 }
