@@ -6,5 +6,6 @@ public interface ElectionTracker extends LeaderChangeListener {
 
 	public void start() throws UnknownHostException;
 	public void startNewElection();
+	public void onElectionEnd();
 	
 }

@@ -19,12 +19,14 @@ public class Heartbeat extends Message {
 	
 	private static final long serialVersionUID = 8406620436481247617L;
 
+	private final int leaderId;
 	private final int seqNum;
 	private final long timestamp;
 	private final List<Node> failedNodes;
 
 	public Heartbeat(int nodeId, int leaderId, int seqNum, long timestamp, List<Node> failedNodes) {
 		super(nodeId);
+		this.leaderId = leaderId;
 		this.seqNum = seqNum;
 		this.timestamp = timestamp;
 		this.failedNodes = failedNodes;
@@ -36,6 +38,10 @@ public class Heartbeat extends Message {
 
 	public int getNodeId() {
 		return getSenderId();
+	}
+	
+	public int getLeaderId() {
+		return leaderId;
 	}
 
 	public int getSeqNum() {

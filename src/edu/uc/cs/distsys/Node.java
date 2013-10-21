@@ -35,6 +35,7 @@ public class Node implements Serializable {
 	
 	public Node(Heartbeat hb) {
 		this(hb.getNodeId(), hb.getSeqNum(), System.currentTimeMillis(), hb.getTimestamp(), NodeState.ONLINE);
+		this.setLeaderId(hb.getLeaderId());
 	}
 	
 	private Node(int id, int seqNum, long checkinRecv, long checkinSent, NodeState initialState) {
@@ -76,6 +77,7 @@ public class Node implements Serializable {
 	public boolean updateStatus(Heartbeat hb, long recvTime) {
 		boolean updated = false;
 		if (hb.getSeqNum() > this.seqHighWaterMark) {
+			this.leaderId = hb.getLeaderId();
 			this.lastCheckinRcv = recvTime;
 			this.lastCheckinSent = hb.getTimestamp();
 			this.seqHighWaterMark = hb.getSeqNum();
@@ -95,7 +97,7 @@ public class Node implements Serializable {
 		Calendar curTime = Calendar.getInstance();
 		Calendar lastCheckinTime = Calendar.getInstance();
 		curTime.setTimeInMillis(currentTime);
-		curTime.add(Calendar.SECOND, (int) (-1 * DetectMain.HB_PERIOD));
+		curTime.add(Calendar.MILLISECOND, (int) (-1 * DetectMain.HB_PERIOD_MS));
 		lastCheckinTime.setTimeInMillis(this.getLastCheckinRcv());
 		if (lastCheckinTime.before(curTime)) {
 			offline = true;
