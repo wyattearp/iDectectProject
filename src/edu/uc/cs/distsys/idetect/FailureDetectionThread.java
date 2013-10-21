@@ -6,6 +6,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.Lock;
 
 import edu.uc.cs.distsys.Node;
+import edu.uc.cs.distsys.NodeState;
 
 final class FailureDetectionThread implements Runnable {
 	
@@ -27,7 +28,7 @@ final class FailureDetectionThread implements Runnable {
 		try {
 			nodeLock.lock();
 			for (Node node : this.nodes.values()) {
-				if (node.checkState(curTime)) {
+				if (node.checkState(curTime).equals(NodeState.OFFLINE)) {
 					for (FailureListener listener : listeners) {
 						listener.onFailedNode(node);
 					}
