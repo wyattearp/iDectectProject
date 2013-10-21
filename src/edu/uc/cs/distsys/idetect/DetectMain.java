@@ -50,7 +50,6 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 		this.myNode = new Node(nodeId);
 		this.statusViewThread = new NodeStatusViewThread(this.myNode.getId());
 		this.uiThread = new Thread(statusViewThread);
-		this.uiThread.start();
 		
 		for (int peer : peers) {
 			this.nodes.put(peer, new Node(peer));
@@ -58,6 +57,7 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 	}
 
 	public void start() throws UnknownHostException {
+		this.uiThread.start();
 		this.hbThread = new HeartbeatThread(this.myNode.getId(), failedNodes, heartbeatLock, logger); 
 		this.detectorThread = Executors.defaultThreadFactory().newThread(
 				new NotifyThread<Heartbeat>(this.myNode.getId(), hbThread.getCommsWrapper(), this, logger));
@@ -150,6 +150,10 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 		return this.myNode.getGroupId();
 	}
 	
+	public void setGroupId(int groupId) {
+		this.myNode.setGroupId(groupId);
+	}
+	
 	public int getId() {
 		return this.myNode.getId();
 	}
@@ -217,6 +221,7 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 				
 		try {
 			final DetectMain detector = new DetectMain(node, peers);
+			detector.setGroupId(group);
 			Runtime.getRuntime().addShutdownHook(new Thread() {
 				@Override
 				public void run() {
