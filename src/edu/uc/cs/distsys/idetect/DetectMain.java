@@ -184,6 +184,7 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 	
 	public static void main(String[] args) {
 		int node = 0;
+		int group = 0;
 		if (args.length < 1) {
 			//System.err.println("Usage: " + args[0] + "<port#> [peer#1] ... [peer#N]");
 			
@@ -194,6 +195,10 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 			if (args.length >= 1) {
 				// first arg is node id
 				node = Integer.parseInt(args[0]);
+			}
+			if (args.length >= 2) {
+				// second arg is group id
+				group = Integer.parseInt(args[1]);
 			}
 		}
 		
