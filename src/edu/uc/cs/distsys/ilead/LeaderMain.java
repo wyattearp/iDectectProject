@@ -25,12 +25,14 @@ public class LeaderMain implements ElectionTracker {
 	private Thread electionAnswerThread;
 	private Thread coordinatorThread;
 	
+	private boolean electionInProgress;
 	private Thread electionThread;
 	
 	public LeaderMain(int nodeId, List<LeaderChangeListener> leaderListeners, Logger logger) throws UnknownHostException {
 		this.myId = nodeId;
 		this.logger = logger;
 		this.newLeaderListeners = leaderListeners;
+		this.electionInProgress = false;
 				
 		this.electionComms = new ElectionComms();
 		this.electionComms.electionComms = new MulticastWrapper<ElectionMessage>(
@@ -69,13 +71,28 @@ public class LeaderMain implements ElectionTracker {
 	public void startNewElection() {
 		this.electionThread = Executors.defaultThreadFactory().newThread(
 				new ElectionNotifierThread(this.myId, this, this.electionComms, this.logger));
+		this.electionInProgress = true;
 		this.electionThread.start();
+	}
+	
+	@Override
+	public void onElectionEnd() {
+		this.electionInProgress = false;
 	}
 	
 	@Override
 	public void onNewLeader(int leaderId) {
 		for (LeaderChangeListener listener : this.newLeaderListeners)
 			listener.onNewLeader(leaderId);
+	}
+	
+	@Override
+	public void onLeaderFailed() {
+		for (LeaderChangeListener listener : this.newLeaderListeners)
+			listener.onLeaderFailed();
+		if (! electionInProgress) {
+			startNewElection();
+		}
 	}
 	
 	private class ElectionListener implements MessageListener<ElectionMessage> {

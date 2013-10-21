@@ -89,6 +89,7 @@ public class ElectionNotifierThread implements Runnable {
 		
 		this.comms.electionAnswerNotifier.removeListener(this.answerListener);
 		this.comms.coordinatorNotifier.removeListener(this.coordinatorListener);
+		this.tracker.onElectionEnd();
 	}
 	
 	private class ElectionAnswerListener implements MessageListener<ElectionAnswerMessage> {

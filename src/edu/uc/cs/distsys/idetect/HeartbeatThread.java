@@ -75,4 +75,14 @@ final class HeartbeatThread implements Runnable, LeaderChangeListener {
 			this.nodeLock.unlock();
 		}
 	}
+	
+	@Override
+	public void onLeaderFailed() {
+		try {
+			this.nodeLock.lock();
+			this.leaderId = 0;
+		} finally {
+			this.nodeLock.unlock();
+		}
+	}
 }

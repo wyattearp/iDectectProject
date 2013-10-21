@@ -21,7 +21,7 @@ import edu.uc.cs.distsys.ilead.LeaderChangeListener;
 import edu.uc.cs.distsys.ilead.LeaderMain;
 import edu.uc.cs.distsys.ui.NodeStatusViewThread;
 
-public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListener	 {
+public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListener, FailureListener {
 
 	private static final long HB_INIT_DELAY		 = 0;
 	private static final long FAIL_DETECT_PERIOD = 5;
@@ -60,9 +60,8 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 				new NotifyThread<Heartbeat>(this.nodeId, hbThread.getCommsWrapper(), this, logger));
 		this.detectorThread.start();
 		this.scheduledExecutor.scheduleAtFixedRate(hbThread, HB_INIT_DELAY, HB_PERIOD, TimeUnit.SECONDS);
-		this.scheduledExecutor.scheduleAtFixedRate(
-				new FailureDetectionThread(nodes, failedNodes, heartbeatLock), 
-				HB_INIT_DELAY, FAIL_DETECT_PERIOD, TimeUnit.SECONDS);
+		FailureDetectionThread fdt = new FailureDetectionThread(nodes, heartbeatLock, this);
+		this.scheduledExecutor.scheduleAtFixedRate(fdt, HB_INIT_DELAY, FAIL_DETECT_PERIOD, TimeUnit.SECONDS);
 		
 		List<LeaderChangeListener> listeners = new LinkedList<LeaderChangeListener>();
 		listeners.add(this);
@@ -105,9 +104,27 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 	}
 	
 	@Override
+	public void onFailedNode(Node failed) {
+		try {
+			this.heartbeatLock.lock();
+			this.failedNodes.add(failed);
+		} finally {
+			this.heartbeatLock.unlock();
+		}
+		if (failed.getId() == myNode.getLeaderId())
+			this.tracker.onLeaderFailed();
+	}
+	
+	@Override
 	public void onNewLeader(int leaderId) {
 		this.logger.log("New Leader: " + leaderId);
 		this.myNode.setLeaderId(leaderId);
+	}
+	
+	@Override
+	public void onLeaderFailed() {
+		this.logger.log("Leader " + myNode.getLeaderId() + " has failed!");
+		myNode.setLeaderId(0);
 	}
 	
 	public int getLeaderId() {
@@ -142,6 +159,10 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 				if (! localNode.isOffline() && localNode.getSeqHighWaterMark() <= node.getSeqHighWaterMark()) {
 					//update our node
 					localNode.markFailed(node.getSeqHighWaterMark());
+					// If it was the leader, we need to elect a new one
+					if (localNode.getId() == myNode.getLeaderId()) {
+						this.tracker.onLeaderFailed();
+					}
 				} else if (! localNode.isOffline()) {
 					//discard out-of-date info
 					//DEBUG
