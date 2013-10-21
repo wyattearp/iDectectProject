@@ -17,35 +17,39 @@ public class Node implements Serializable {
 
 	private static final long serialVersionUID = 9034156178527052520L;
 
-	private final int id;	
+	private final int id;
 	private long lastCheckinRcv;
 	private long lastCheckinSent;
+	private long suspectTime;
 	private int seqHighWaterMark;
 	private NodeState state;
 	private int leaderId;
 	private int groupId;
-	
-	public static Node createFailedNode(int id, int seqNum) {
-		return new Node(id, seqNum, 0, 0, NodeState.OFFLINE);
+
+	public static Node createFailedNode(int id, NodeState state, int seqNum) {
+		return new Node(id, seqNum, 0, 0, state);
 	}
 
 	public Node(int id) {
 		this(id, -1, 0, 0, NodeState.UNKNOWN);
 	}
-	
+
 	public Node(Heartbeat hb) {
-		this(hb.getNodeId(), hb.getSeqNum(), System.currentTimeMillis(), hb.getTimestamp(), NodeState.ONLINE);
+		this(hb.getNodeId(), hb.getSeqNum(), System.currentTimeMillis(), hb
+				.getTimestamp(), NodeState.ONLINE);
 		this.setLeaderId(hb.getLeaderId());
 	}
-	
-	private Node(int id, int seqNum, long checkinRecv, long checkinSent, NodeState initialState) {
+
+	private Node(int id, int seqNum, long checkinRecv, long checkinSent,
+			NodeState initialState) {
 		this.id = id;
 		this.seqHighWaterMark = seqNum;
 		this.lastCheckinRcv = checkinRecv;
 		this.lastCheckinSent = checkinSent;
+		this.suspectTime = 0;
 		this.state = initialState;
 	}
-	
+
 	public int getId() {
 		return id;
 	}
@@ -53,7 +57,7 @@ public class Node implements Serializable {
 	public long getLastCheckinRcv() {
 		return lastCheckinRcv;
 	}
-	
+
 	public long getLastCheckinSent() {
 		return lastCheckinSent;
 	}
@@ -66,14 +70,18 @@ public class Node implements Serializable {
 		return state;
 	}
 	
-	public boolean updateStatus(Heartbeat hb) {
-		return this.updateStatus(hb, System.currentTimeMillis());
+	public long getSuspectTime() {
+		return suspectTime;
 	}
-	
+
 	public boolean isOffline() {
 		return this.state == NodeState.OFFLINE;
 	}
 	
+	public boolean updateStatus(Heartbeat hb) {
+		return this.updateStatus(hb, System.currentTimeMillis());
+	}
+
 	public boolean updateStatus(Heartbeat hb, long recvTime) {
 		boolean updated = false;
 		if (hb.getSeqNum() > this.seqHighWaterMark) {
@@ -87,25 +95,32 @@ public class Node implements Serializable {
 		return updated;
 	}
 
-	public void markFailed(int seqNum) {
-		this.seqHighWaterMark = seqNum;
-		this.state = NodeState.OFFLINE;
+	public void updateState(Node node) {
+		this.seqHighWaterMark = node.getSeqHighWaterMark();
+		this.state = node.getState();
+		this.suspectTime = node.getSuspectTime();
 	}
 
-	public boolean checkState(long currentTime) {
-		boolean offline = false;
+	public NodeState checkState(long currentTime) {
 		Calendar curTime = Calendar.getInstance();
 		Calendar lastCheckinTime = Calendar.getInstance();
 		curTime.setTimeInMillis(currentTime);
 		curTime.add(Calendar.MILLISECOND, (int) (-1 * DetectMain.HB_PERIOD_MS));
 		lastCheckinTime.setTimeInMillis(this.getLastCheckinRcv());
-		if (lastCheckinTime.before(curTime)) {
-			offline = true;
-			this.state = NodeState.OFFLINE;
+		if (state.equals(NodeState.SUSPECT)) {
+			if((currentTime - suspectTime) >= (2 * DetectMain.HB_PERIOD_MS)) {
+				suspectTime = 0;
+				this.state = NodeState.OFFLINE;
+			}
+		} else if (! state.equals(NodeState.OFFLINE)) {
+			if (lastCheckinTime.before(curTime)) {
+				this.state = NodeState.SUSPECT;
+				this.suspectTime = currentTime;
+			}
 		}
-		return offline;
+		return state;
 	}
-	
+
 	@Override
 	public Node clone() {
 		Node newNode = new Node(this.id);
@@ -114,7 +129,7 @@ public class Node implements Serializable {
 		newNode.state = state;
 		return newNode;
 	}
-	
+
 	public byte[] serialize() {
 		byte[] bytes = null;
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -182,6 +197,5 @@ public class Node implements Serializable {
 	public void setGroupId(int groupId) {
 		this.groupId = groupId;
 	}
-	
-	
+
 }

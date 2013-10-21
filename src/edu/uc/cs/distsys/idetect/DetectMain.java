@@ -14,6 +14,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import edu.uc.cs.distsys.LogHelper;
 import edu.uc.cs.distsys.Node;
+import edu.uc.cs.distsys.NodeState;
 import edu.uc.cs.distsys.comms.MessageListener;
 import edu.uc.cs.distsys.comms.NotifyThread;
 import edu.uc.cs.distsys.ilead.ElectionTracker;
@@ -112,6 +113,7 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 		}
 		if (failed.getId() == myNode.getLeaderId())
 			this.tracker.onLeaderFailed();
+		this.statusViewThread.updateUI();
 	}
 	
 	@Override
@@ -159,21 +161,20 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 			this.heartbeatLock.lock();
 			if (!nodes.containsKey(node.getId())) {
 				logger.log("Discovered new node (offline) - " + node.getId());
-				this.nodes.put(node.getId(), Node.createFailedNode(node.getId(), node.getSeqHighWaterMark()));
+				this.nodes.put(node.getId(), Node.createFailedNode(node.getId(), node.getState(), node.getSeqHighWaterMark()));
 			} else {
 				Node localNode = nodes.get(node.getId());
 				if (! localNode.isOffline() && localNode.getSeqHighWaterMark() <= node.getSeqHighWaterMark()) {
 					//update our node
-					localNode.markFailed(node.getSeqHighWaterMark());
+					localNode.updateState(node);
 					// If it was the leader, we need to elect a new one
 					if (localNode.getId() == myNode.getLeaderId()) {
 						this.tracker.onLeaderFailed();
 					}
-				} else if (! localNode.isOffline()) {
+				} else if (! localNode.isOffline() && ! node.getState().equals(NodeState.SUSPECT)) {
 					//discard out-of-date info
 					//DEBUG
-					logger.debug("Reported failed node is actually online (id=" + 
-										node.getId() + ")");
+					logger.debug("Reported failed node is actually online (id=" + node.getId() + ")");
 				}
 			}
 			this.statusViewThread.updateUI();
