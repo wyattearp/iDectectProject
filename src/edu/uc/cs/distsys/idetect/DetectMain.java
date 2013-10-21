@@ -34,6 +34,7 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 	private HashMap<Integer, Node> nodes;
 	private List<Node> failedNodes;
 	private Thread detectorThread;
+	private Thread uiThread;
 	private LogHelper logger;
 	private NodeStatusViewThread statusViewThread;
 	private ElectionTracker tracker;
@@ -48,7 +49,8 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 		this.scheduledExecutor = new ScheduledThreadPoolExecutor(1);	//TODO
 		this.myNode = new Node(nodeId);
 		this.statusViewThread = new NodeStatusViewThread(this.myNode.getId());
-		new Thread(statusViewThread).start();
+		this.uiThread = new Thread(statusViewThread);
+		this.uiThread.start();
 		
 		for (int peer : peers) {
 			this.nodes.put(peer, new Node(peer));
@@ -56,7 +58,7 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 	}
 
 	public void start() throws UnknownHostException {
-		hbThread = new HeartbeatThread(this.myNode.getId(), failedNodes, heartbeatLock, logger); 
+		this.hbThread = new HeartbeatThread(this.myNode.getId(), failedNodes, heartbeatLock, logger); 
 		this.detectorThread = Executors.defaultThreadFactory().newThread(
 				new NotifyThread<Heartbeat>(this.myNode.getId(), hbThread.getCommsWrapper(), this, logger));
 		this.detectorThread.start();
@@ -73,10 +75,10 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 	}
 	
 	public void stop() {
-		this.detectorThread.interrupt();
 		this.scheduledExecutor.shutdownNow();
-		try { Thread.sleep(500); } catch (InterruptedException e) {};
-		hbThread.getCommsWrapper().close();
+		this.hbThread.getCommsWrapper().close();
+		this.detectorThread.interrupt();
+		this.uiThread.interrupt();
 		this.tracker.stop();
 		this.logger.log("Detector shutting down");
 		this.logger.close();
