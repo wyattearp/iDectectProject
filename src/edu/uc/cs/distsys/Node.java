@@ -8,7 +8,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 import edu.uc.cs.distsys.idetect.DetectMain;
 import edu.uc.cs.distsys.idetect.Heartbeat;
@@ -25,6 +27,7 @@ public class Node implements Serializable {
 	private NodeState state;
 	private int leaderId;
 	private int groupId;
+	private static final String timeStampFormat = "HH:mm:ss.SSS";
 
 	public static Node createFailedNode(int id, NodeState state, int seqNum) {
 		return new Node(id, seqNum, 0, 0, state);
@@ -57,9 +60,20 @@ public class Node implements Serializable {
 	public long getLastCheckinRcv() {
 		return lastCheckinRcv;
 	}
+	
+	public String getLastCheckinRcvString() {
+		Date d = new Date(this.lastCheckinRcv);
+		SimpleDateFormat df2 = new SimpleDateFormat(timeStampFormat);
+		return df2.format(d);
+	}
 
 	public long getLastCheckinSent() {
 		return lastCheckinSent;
+	}
+	public String getLastCheckinSentString() {
+		Date d = new Date(this.lastCheckinSent);
+		SimpleDateFormat df2 = new SimpleDateFormat(timeStampFormat);
+		return df2.format(d);
 	}
 
 	public int getSeqHighWaterMark() {
@@ -72,6 +86,11 @@ public class Node implements Serializable {
 	
 	public long getSuspectTime() {
 		return suspectTime;
+	}
+	public String getSuspectTimeString() {
+		Date d = new Date(this.suspectTime);
+		SimpleDateFormat df2 = new SimpleDateFormat(timeStampFormat);
+		return df2.format(d);
 	}
 
 	public boolean isOffline() {
@@ -196,6 +215,19 @@ public class Node implements Serializable {
 
 	public void setGroupId(int groupId) {
 		this.groupId = groupId;
+	}
+	
+	public void printNode() {
+
+		System.out.println("==== Node ID: " + this.id + "====");
+		System.out.println("\tLast Checkin Rcv: " + this.getLastCheckinRcvString());
+		System.out.println("\tLast Checkin Snd: " + this.getLastCheckinSentString());
+		System.out.println("\tSuspect Time: " + this.getSuspectTimeString());
+		System.out.println("\tSeq HighWaterMakr: " + this.seqHighWaterMark);
+		System.out.println("\tState: " + this.state);
+		System.out.println("\tLeader ID: " + this.leaderId);
+		System.out.println("\tGroup ID: " + this.groupId);
+		
 	}
 
 }
