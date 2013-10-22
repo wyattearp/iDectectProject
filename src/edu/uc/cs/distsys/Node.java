@@ -18,7 +18,8 @@ import edu.uc.cs.distsys.idetect.Heartbeat;
 public class Node implements Serializable {
 
 	private static final long serialVersionUID = 9034156178527052520L;
-
+	private static final String timeStampFormat = "HH:mm:ss.SSS";
+	
 	private final int id;
 	private long lastCheckinRcv;
 	private long lastCheckinSent;
@@ -27,7 +28,6 @@ public class Node implements Serializable {
 	private NodeState state;
 	private int leaderId;
 	private int groupId;
-	private static final String timeStampFormat = "HH:mm:ss.SSS";
 
 	public static Node createFailedNode(int id, NodeState state, int seqNum) {
 		return new Node(id, seqNum, 0, 0, state);
