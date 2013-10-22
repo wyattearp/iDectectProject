@@ -50,7 +50,6 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 		this.myNode = new Node(nodeId);
 		this.statusViewThread = new NodeStatusViewThread(this.myNode.getId());
 		this.uiThread = new Thread(statusViewThread);
-		this.uiThread.start();
 		
 		for (int peer : peers) {
 			this.nodes.put(peer, new Node(peer));
@@ -62,6 +61,7 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 	}
 	
 	public void start(LeaderChangeListener leaderChangeListener) throws UnknownHostException {
+		this.uiThread.start();
 		this.hbThread = new HeartbeatThread(this.myNode.getId(), failedNodes, heartbeatLock, logger); 
 		this.detectorThread = Executors.defaultThreadFactory().newThread(
 				new NotifyThread<Heartbeat>(this.myNode.getId(), hbThread.getCommsWrapper(), this, logger));
@@ -87,8 +87,8 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 		this.detectorThread.interrupt();
 		this.uiThread.interrupt();
 		this.tracker.stop();
-
 		this.logger.log("Detector shutting down");
+		this.logger.close();
 	}
 
 	@Override
@@ -157,6 +157,10 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 		return this.myNode.getGroupId();
 	}
 	
+	public void setGroupId(int groupId) {
+		this.myNode.setGroupId(groupId);
+	}
+	
 	public int getId() {
 		return this.myNode.getId();
 	}
@@ -202,7 +206,6 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 		int group = 0;
 		if (args.length < 1) {
 			//System.err.println("Usage: " + args[0] + "<port#> [peer#1] ... [peer#N]");
-			
 			// DEBUGGING
 			//port = new Random(System.currentTimeMillis()).nextInt(1000) + 1024;
 			node = new Random(System.currentTimeMillis()).nextInt(1000);
@@ -217,6 +220,9 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 			}
 		}
 		
+		// DEBUG FOR TESTING!!!
+		//System.getProperties().setProperty("packetloss", "20");
+		
 		List<Integer> peers = new LinkedList<Integer>();
 		for (int i = 1; i < args.length; i++) {
 			peers.add(Integer.parseInt(args[i]));
@@ -224,6 +230,7 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 				
 		try {
 			final DetectMain detector = new DetectMain(node, peers);
+			detector.setGroupId(group);
 			Runtime.getRuntime().addShutdownHook(new Thread() {
 				@Override
 				public void run() {

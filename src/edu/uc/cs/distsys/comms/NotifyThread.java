@@ -31,8 +31,8 @@ public class NotifyThread<T extends Message> implements Runnable {
 	}
 	
 	public void addListener(MessageListener<T> listener) {
+		this.listLock.lock();
 		try {
-			this.listLock.lock();
 			this.listeners.add(listener);
 		} finally {
 			this.listLock.unlock();
@@ -40,8 +40,8 @@ public class NotifyThread<T extends Message> implements Runnable {
 	}
 	
 	public void removeListener(MessageListener<T> listener) {
+		this.listLock.lock();
 		try {
-			this.listLock.lock();
 			this.listeners.remove(listener);
 		} finally {
 			this.listLock.unlock();
@@ -52,7 +52,7 @@ public class NotifyThread<T extends Message> implements Runnable {
 	public void run() {
 		logger.log("Starting up notify thread...");
 		try {
-			while (true) {
+			while (!Thread.currentThread().isInterrupted()) {
 				try {
 					T msg = this.commWrapper.receive();
 					this.listLock.lock();
@@ -66,7 +66,8 @@ public class NotifyThread<T extends Message> implements Runnable {
 				}
 				catch (IOException e) {
 					//e.printStackTrace();
-					logger.debug("ERROR: " + e);
+					if (!Thread.currentThread().isInterrupted()) 
+						logger.error("ERROR: " + e);
 				}
 			}
 		} finally {
