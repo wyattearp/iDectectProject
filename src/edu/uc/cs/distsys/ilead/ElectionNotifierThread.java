@@ -52,7 +52,7 @@ public class ElectionNotifierThread implements Runnable {
 			this.coordinatorMessages.clear();
 			this.comms.electionComms.send(e);
 		} catch (IOException ioException) {
-			// TODO: yea right, like I care
+			logger.error("ERROR (ElectionNotifierThread-" + this.id +"): " + ioException);
 		}
 		
 		try {
@@ -81,11 +81,12 @@ public class ElectionNotifierThread implements Runnable {
 					this.comms.coordinatorComms.send(new CoordinatorMessage(this.id));
 					this.tracker.onNewLeader(this.id);
 				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+					logger.error("ERROR (ElectionNotifierThread-ElectionResponse" + this.id +"): " + e1);
 				}
 			}
-		} catch (InterruptedException ex) {}
+		} catch (InterruptedException ex) {
+			logger.debug("DEBUG: (ElectionNotifierThread-ElectionResponse" + this.id + ")" + ex);
+		}
 		
 		this.comms.electionAnswerNotifier.removeListener(this.answerListener);
 		this.comms.coordinatorNotifier.removeListener(this.coordinatorListener);

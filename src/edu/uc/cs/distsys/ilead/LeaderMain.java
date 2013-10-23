@@ -107,8 +107,8 @@ public class LeaderMain implements ElectionTracker {
 							new ElectionAnswerMessage(LeaderMain.this.myId, message.getSenderId(), message.getTransactionId()));
 					LeaderMain.this.startNewElection();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					logger.error("ERROR (LeaderMain-ElectionListener): " + e);
+					//e.printStackTrace();
 				}
 			}
 		}

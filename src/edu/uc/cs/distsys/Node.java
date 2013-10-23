@@ -158,7 +158,8 @@ public class Node implements Serializable {
 			out.writeObject(this);
 			bytes = bos.toByteArray();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Unable to serialize node");
+			this.printNode();
 			e.printStackTrace();
 		} finally {
 			try {
@@ -167,7 +168,9 @@ public class Node implements Serializable {
 				}
 				bos.close();
 			} catch (IOException e) {
-				// TODO
+				System.out.println("Unable to serialize the node");
+				this.printNode();
+				e.printStackTrace();
 			}
 		}
 		return bytes;
@@ -181,10 +184,10 @@ public class Node implements Serializable {
 			in = new ObjectInputStream(bis);
 			node = (Node) in.readObject();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Unable to deserialize node");
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Unable to locate the class during deserialize");
 			e.printStackTrace();
 		} finally {
 			try {
@@ -193,7 +196,10 @@ public class Node implements Serializable {
 				}
 				bis.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
+				System.out.println("Some sort of weird I/O problem");
+				if (node != null) {
+					node.printNode();
+				}
 				e.printStackTrace();
 			}
 
