@@ -129,6 +129,7 @@ public class MulticastWrapper<T extends Message> implements CommsWrapper<T> {
 	}
 
 	private boolean shouldDropPacket() {
+		this.packetLoss = Integer.parseInt(System.getProperty("packetloss", "0"));
 		int r = this.rng.nextInt(100);
 		rands.add(r);
 		return (r < this.packetLoss);

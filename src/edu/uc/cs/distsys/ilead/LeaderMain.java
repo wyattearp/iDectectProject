@@ -27,7 +27,7 @@ public class LeaderMain implements ElectionTracker {
 	
 	private boolean electionInProgress;
 	private Thread electionThread;
-	
+
 	public LeaderMain(int nodeId, List<LeaderChangeListener> leaderListeners, Logger logger) throws UnknownHostException {
 		this.myId = nodeId;
 		this.logger = logger;

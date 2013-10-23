@@ -25,8 +25,8 @@ import edu.uc.cs.distsys.ui.NodeStatusViewThread;
 public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListener, FailureListener {
 
 	private static final long HB_INIT_DELAY		    = 0;
-	private static final long FAIL_DETECT_PERIOD_MS = 1500;
-	public static final long  HB_PERIOD_MS			= 1000;
+	private static final long FAIL_DETECT_PERIOD_MS = 750;
+	public static final long  HB_PERIOD_MS			= 330;
 
 	private final ScheduledExecutorService scheduledExecutor;
 
@@ -57,6 +57,10 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 	}
 
 	public void start() throws UnknownHostException {
+		start(null);
+	}
+	
+	public void start(LeaderChangeListener leaderChangeListener) throws UnknownHostException {
 		this.uiThread.start();
 		this.hbThread = new HeartbeatThread(this.myNode.getId(), failedNodes, heartbeatLock, logger); 
 		this.detectorThread = Executors.defaultThreadFactory().newThread(
@@ -69,6 +73,9 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 		List<LeaderChangeListener> listeners = new LinkedList<LeaderChangeListener>();
 		listeners.add(this);
 		listeners.add(hbThread);
+		if (leaderChangeListener != null) {
+			listeners.add(leaderChangeListener);
+		}
 		this.tracker = new LeaderMain(this.myNode.getId(), listeners, logger);
 		this.tracker.start();
 		this.tracker.startNewElection();
