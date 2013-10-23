@@ -10,7 +10,7 @@ import edu.uc.cs.distsys.comms.MessageListener;
 import edu.uc.cs.distsys.comms.MulticastWrapper;
 import edu.uc.cs.distsys.comms.NotifyThread;
 
-public class LeaderMain implements ElectionTracker {
+public class LeaderMain implements ElectionManager {
 
 	private static final int ELECTION_MSG_PORT = 5100;
 	private static final int ELECTION_ANSWER_MSG_PORT = 5200;
@@ -33,7 +33,7 @@ public class LeaderMain implements ElectionTracker {
 		this.logger = logger;
 		this.newLeaderListeners = leaderListeners;
 		this.electionInProgress = false;
-				
+		
 		this.electionComms = new ElectionComms();
 		this.electionComms.electionComms = new MulticastWrapper<ElectionMessage>(
 				ELECTION_MSG_PORT, myId, new ElectionMessage.ElectionFactory(), logger);
@@ -72,19 +72,27 @@ public class LeaderMain implements ElectionTracker {
 	public void startNewElection() {
 		this.electionThread = Executors.defaultThreadFactory().newThread(
 				new ElectionNotifierThread(this.myId, this, this.electionComms, this.logger));
-		this.electionInProgress = true;
 		this.electionThread.start();
 	}
 	
 	@Override
-	public void onElectionEnd() {
+	public void onElectionThreadStart() {
+		this.electionInProgress = true;
+	}
+	
+	@Override
+	public void onElectionThreadEnd() {
 		this.electionInProgress = false;
 	}
 	
 	@Override
 	public void onNewLeader(int leaderId) {
-		for (LeaderChangeListener listener : this.newLeaderListeners)
-			listener.onNewLeader(leaderId);
+		if (leaderId < this.myId) {
+			startNewElection();
+		} else {
+			for (LeaderChangeListener listener : this.newLeaderListeners)
+				listener.onNewLeader(leaderId);
+		}
 	}
 	
 	@Override

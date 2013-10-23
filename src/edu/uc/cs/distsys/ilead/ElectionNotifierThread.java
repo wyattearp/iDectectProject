@@ -17,7 +17,7 @@ public class ElectionNotifierThread implements Runnable {
 	private int id;
 	private Random randomNumberGen;
 	private int transactionId;
-	private ElectionTracker tracker;
+	private ElectionManager tracker;
 	private ElectionComms comms;
 	private Logger logger;
 	
@@ -27,7 +27,7 @@ public class ElectionNotifierThread implements Runnable {
 	private BlockingQueue<ElectionAnswerMessage> electionAnswers;
 	private BlockingQueue<CoordinatorMessage> coordinatorMessages;
 	
-	public ElectionNotifierThread(int currentNodeId, ElectionTracker tracker, ElectionComms comms, Logger logger) {
+	public ElectionNotifierThread(int currentNodeId, ElectionManager tracker, ElectionComms comms, Logger logger) {
 		this.id = currentNodeId;
 		this.randomNumberGen = new Random(System.currentTimeMillis());
 		this.comms = comms;
@@ -89,7 +89,6 @@ public class ElectionNotifierThread implements Runnable {
 		
 		this.comms.electionAnswerNotifier.removeListener(this.answerListener);
 		this.comms.coordinatorNotifier.removeListener(this.coordinatorListener);
-		this.tracker.onElectionEnd();
 	}
 	
 	private class ElectionAnswerListener implements MessageListener<ElectionAnswerMessage> {

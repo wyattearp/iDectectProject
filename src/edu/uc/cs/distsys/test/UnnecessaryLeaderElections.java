@@ -1,21 +1,17 @@
 package edu.uc.cs.distsys.test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.rmi.CORBA.Tie;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import edu.uc.cs.distsys.idetect.DetectMain;
-import edu.uc.cs.distsys.ilead.ElectionEvent;
-import edu.uc.cs.distsys.ilead.ElectionEventNotifier;
 import edu.uc.cs.distsys.ilead.LeaderChangeListener;
 
 /***

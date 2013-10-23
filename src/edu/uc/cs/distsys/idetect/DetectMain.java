@@ -17,7 +17,7 @@ import edu.uc.cs.distsys.Node;
 import edu.uc.cs.distsys.NodeState;
 import edu.uc.cs.distsys.comms.MessageListener;
 import edu.uc.cs.distsys.comms.NotifyThread;
-import edu.uc.cs.distsys.ilead.ElectionTracker;
+import edu.uc.cs.distsys.ilead.ElectionManager;
 import edu.uc.cs.distsys.ilead.LeaderChangeListener;
 import edu.uc.cs.distsys.ilead.LeaderMain;
 import edu.uc.cs.distsys.ui.NodeStatusViewThread;
@@ -37,7 +37,7 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 	private Thread uiThread;
 	private LogHelper logger;
 	private NodeStatusViewThread statusViewThread;
-	private ElectionTracker tracker;
+	private ElectionManager tracker;
 	private Node myNode;
 	private HeartbeatThread hbThread;
 
