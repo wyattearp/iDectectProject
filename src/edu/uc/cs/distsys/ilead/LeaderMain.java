@@ -35,8 +35,9 @@ public class LeaderMain implements ElectionManager {
 	private Thread coordinatorThread;
 	
 	private boolean electionInProgress;
-	private Thread electionThread;
+//	private Thread electionThread;
 	private Lock electionLock;
+	private BlockingQueue<Thread> activeElectionThreads;
 	private BlockingQueue<Thread> pendingElectionThreads;
 
 	public LeaderMain(int nodeId, List<LeaderChangeListener> leaderListeners, Logger logger) throws UnknownHostException {
@@ -45,6 +46,7 @@ public class LeaderMain implements ElectionManager {
 		this.newLeaderListeners = leaderListeners;
 		this.monitorList = new LinkedList<ElectionMonitor>();
 		this.electionLock = new ReentrantLock();
+		this.activeElectionThreads = new LinkedBlockingQueue<Thread>();
 		this.pendingElectionThreads = new LinkedBlockingQueue<Thread>();
 		this.electionInProgress = false;
 		
@@ -85,14 +87,18 @@ public class LeaderMain implements ElectionManager {
 		this.electionMsgThread.interrupt();
 		this.electionAnswerThread.interrupt();
 		this.coordinatorThread.interrupt();
+		for (Thread t : pendingElectionThreads)
+			t.interrupt();
+		for (Thread t : activeElectionThreads)
+			t.interrupt();
 	}
 
 	@Override
 	public void startNewElection() {
-		this.electionThread = Executors.defaultThreadFactory().newThread(
+		Thread electionThread = Executors.defaultThreadFactory().newThread(
 				new ElectionNotifierThread(this.myId, this, this.electionComms, this.logger));
 		this.pendingElectionThreads.add(electionThread);
-		this.electionThread.start();
+		electionThread.start();
 	}
 	
 	@Override
@@ -104,6 +110,7 @@ public class LeaderMain implements ElectionManager {
 		logger.error("Election thread has started");
 		this.electionInProgress = true;
 		this.pendingElectionThreads.remove(Thread.currentThread());
+		this.activeElectionThreads.add(Thread.currentThread());
 		for (ElectionMonitor monitor : this.monitorList) {
 			monitor.onElectionStart(this.myId);
 		}
