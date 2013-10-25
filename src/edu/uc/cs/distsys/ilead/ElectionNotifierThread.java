@@ -90,8 +90,7 @@ public class ElectionNotifierThread implements Runnable {
 				} catch (MessageDroppedException mde) {
 					this.logger.debug("DEBUG: " + mde);
 				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+					logger.error("ERROR (ElectionNotifierThread-ElectionResponse" + this.id +"): " + e1);
 				}
 			}
 		} catch (InterruptedException ex) {

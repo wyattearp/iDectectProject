@@ -153,8 +153,8 @@ System.err.println("LEADER FAILED!");
 				} catch (MessageDroppedException mde) {
 					logger.debug("ERROR: " + mde);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					logger.error("ERROR (LeaderMain-ElectionListener): " + e);
+					//e.printStackTrace();
 				}
 			}
 		}

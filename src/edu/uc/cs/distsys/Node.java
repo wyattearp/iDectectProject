@@ -8,7 +8,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 import edu.uc.cs.distsys.idetect.DetectMain;
 import edu.uc.cs.distsys.idetect.Heartbeat;
@@ -16,7 +18,8 @@ import edu.uc.cs.distsys.idetect.Heartbeat;
 public class Node implements Serializable {
 
 	private static final long serialVersionUID = 9034156178527052520L;
-
+	private static final String timeStampFormat = "HH:mm:ss.SSS";
+	
 	private final int id;
 	private long lastCheckinRcv;
 	private long lastCheckinSent;
@@ -57,9 +60,20 @@ public class Node implements Serializable {
 	public long getLastCheckinRcv() {
 		return lastCheckinRcv;
 	}
+	
+	public String getLastCheckinRcvString() {
+		Date d = new Date(this.lastCheckinRcv);
+		SimpleDateFormat df2 = new SimpleDateFormat(timeStampFormat);
+		return df2.format(d);
+	}
 
 	public long getLastCheckinSent() {
 		return lastCheckinSent;
+	}
+	public String getLastCheckinSentString() {
+		Date d = new Date(this.lastCheckinSent);
+		SimpleDateFormat df2 = new SimpleDateFormat(timeStampFormat);
+		return df2.format(d);
 	}
 
 	public int getSeqHighWaterMark() {
@@ -72,6 +86,11 @@ public class Node implements Serializable {
 	
 	public long getSuspectTime() {
 		return suspectTime;
+	}
+	public String getSuspectTimeString() {
+		Date d = new Date(this.suspectTime);
+		SimpleDateFormat df2 = new SimpleDateFormat(timeStampFormat);
+		return df2.format(d);
 	}
 
 	public boolean isOffline() {
@@ -150,7 +169,8 @@ public class Node implements Serializable {
 			out.writeObject(this);
 			bytes = bos.toByteArray();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Unable to serialize node");
+			this.printNode();
 			e.printStackTrace();
 		} finally {
 			try {
@@ -159,7 +179,9 @@ public class Node implements Serializable {
 				}
 				bos.close();
 			} catch (IOException e) {
-				// TODO
+				System.out.println("Unable to serialize the node");
+				this.printNode();
+				e.printStackTrace();
 			}
 		}
 		return bytes;
@@ -173,10 +195,10 @@ public class Node implements Serializable {
 			in = new ObjectInputStream(bis);
 			node = (Node) in.readObject();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Unable to deserialize node");
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Unable to locate the class during deserialize");
 			e.printStackTrace();
 		} finally {
 			try {
@@ -185,7 +207,10 @@ public class Node implements Serializable {
 				}
 				bis.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
+				System.out.println("Some sort of weird I/O problem");
+				if (node != null) {
+					node.printNode();
+				}
 				e.printStackTrace();
 			}
 
@@ -207,6 +232,19 @@ public class Node implements Serializable {
 
 	public void setGroupId(int groupId) {
 		this.groupId = groupId;
+	}
+	
+	public void printNode() {
+
+		System.out.println("==== Node ID: " + this.id + "====");
+		System.out.println("\tLast Checkin Rcv: " + this.getLastCheckinRcvString());
+		System.out.println("\tLast Checkin Snd: " + this.getLastCheckinSentString());
+		System.out.println("\tSuspect Time: " + this.getSuspectTimeString());
+		System.out.println("\tSeq HighWaterMakr: " + this.seqHighWaterMark);
+		System.out.println("\tState: " + this.state);
+		System.out.println("\tLeader ID: " + this.leaderId);
+		System.out.println("\tGroup ID: " + this.groupId);
+		
 	}
 
 }

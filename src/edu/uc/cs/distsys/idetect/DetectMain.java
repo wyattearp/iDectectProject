@@ -48,7 +48,7 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 		this.nodes = new HashMap<Integer, Node>();
 		this.failedNodes = new LinkedList<Node>();
 		this.heartbeatLock = new ReentrantLock();
-		this.scheduledExecutor = new ScheduledThreadPoolExecutor(1);	//TODO
+		this.scheduledExecutor = new ScheduledThreadPoolExecutor(1);
 		this.myNode = new Node(nodeId);
 		this.statusViewThread = new NodeStatusViewThread(this.myNode.getId());
 		this.uiThread = new Thread(statusViewThread);
@@ -251,7 +251,7 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 			});
 			detector.start();
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Something horrible happened and there was nothing we could do about it");
 			e.printStackTrace();
 		}
 	}

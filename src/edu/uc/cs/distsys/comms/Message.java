@@ -32,7 +32,7 @@ public abstract class Message implements Serializable {
 			out.writeObject(this);
 			bytes = bos.toByteArray();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Error in serialize");
 			e.printStackTrace();
 		} finally {
 			try {
@@ -41,7 +41,7 @@ public abstract class Message implements Serializable {
 				}
 				bos.close();
 			} catch (IOException e) {
-				// TODO
+				System.out.println("Some weird IO error in serialize");
 			}
 		}
 		return bytes;
@@ -55,10 +55,10 @@ public abstract class Message implements Serializable {
 			in = new ObjectInputStream(bis);
 			msg = (Message) in.readObject();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Error in deserialize");
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Unable to find class in deserialize");
 			e.printStackTrace();
 		} finally {
 			try {
@@ -67,7 +67,7 @@ public abstract class Message implements Serializable {
 				}
 				bis.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
+				System.out.println("Some weird IO error in deserialize");
 				e.printStackTrace();
 			}
 		}

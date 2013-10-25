@@ -58,8 +58,9 @@ final class HeartbeatThread implements Runnable, LeaderChangeListener {
 		} catch (MessageDroppedException mde) {
 			logger.debug("ERROR: " + mde);
 		} catch (IOException e) {
-			if (!Thread.currentThread().isInterrupted())
-				logger.error("ERROR: " + e);
+			if (!Thread.currentThread().isInterrupted()) {
+				logger.error("ERROR(HeartbeatThread-" + this.nodeId + "):" + e);
+			}
 			//e.printStackTrace();
 		} finally {
 			nodeLock.unlock();

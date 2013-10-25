@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="Create Runable JAR" name="Create Runnable Jar for Project iDetect">
+    <target name="Create Runable JAR">
+        <jar destfile="iDetect.jar" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="edu.uc.cs.distsys.idetect.DetectMain"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+        </jar>
+    </target>
+</project>
