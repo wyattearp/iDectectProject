@@ -8,6 +8,7 @@ import java.util.concurrent.locks.Lock;
 import edu.uc.cs.distsys.Logger;
 import edu.uc.cs.distsys.Node;
 import edu.uc.cs.distsys.comms.CommsWrapper;
+import edu.uc.cs.distsys.comms.MessageDroppedException;
 import edu.uc.cs.distsys.comms.MulticastWrapper;
 import edu.uc.cs.distsys.ilead.LeaderChangeListener;
 
@@ -44,15 +45,18 @@ final class HeartbeatThread implements Runnable, LeaderChangeListener {
 				for (Node n : failedNodes)
 					msg += n.getId() + ", ";
 				msg += "}";
-				logger.log(msg);
+				logger.debug(msg);
 			} else {
 				//DEBUG:
 				logger.debug("Sending heartbeat with " + 
 						failedNodes.size() + " failed nodes");
 				//DEBUG
 			}
-			heartbeatSender.send(new Heartbeat(nodeId, leaderId, nextSeqNum++, curTime, failedNodes));
 			failedNodes.clear();
+			heartbeatSender.send(new Heartbeat(nodeId, leaderId, nextSeqNum++, curTime, failedNodes));
+//			failedNodes.clear();
+		} catch (MessageDroppedException mde) {
+			logger.debug("ERROR: " + mde);
 		} catch (IOException e) {
 			if (!Thread.currentThread().isInterrupted())
 				logger.error("ERROR: " + e);

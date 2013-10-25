@@ -65,8 +65,7 @@ public class MulticastWrapper<T extends Message> implements CommsWrapper<T> {
 
 		if (shouldDropPacket()) {
 			this.outboundDropped++;
-			//throw new IOException("Outbound packet dropped #" + this.outboundDropped + " of " + this.outboundSent);
-			return;
+			throw new MessageDroppedException("Outbound packet dropped #" + this.outboundDropped + " of " + this.outboundSent);
 		}
 		this.outboundSent++;
 		MulticastSocket socket = new MulticastSocket();
@@ -98,12 +97,12 @@ public class MulticastWrapper<T extends Message> implements CommsWrapper<T> {
 			DatagramPacket packet = new DatagramPacket(buf, buf.length);
 			this.recvSocket.receive(packet);
 			msg = this.messageFactory.create(buf);
-			if (msg.getSenderId() == this.myId)
+			if (msg != null && msg.getSenderId() == this.myId)
 				msg = null;
 		}
 		if (shouldDropPacket()) {
 			this.inboundDropped++;
-			throw new IOException("Inbound packet dropped #" + this.inboundDropped + " of " + this.inboundReceived);
+			throw new MessageDroppedException("Inbound packet dropped #" + this.inboundDropped + " of " + this.inboundReceived);
 		}
 		this.inboundReceived++;		
 		return msg;
@@ -122,10 +121,10 @@ public class MulticastWrapper<T extends Message> implements CommsWrapper<T> {
 		logger.debug("RNG Seed: " + this.rngSeed);
 		logger.debug("Outbound: Dropped=" + this.outboundDropped + " / " + this.outboundSent + " (" + outPct + "%)");
 		logger.debug("Inbound : Dropped=" + this.inboundDropped + " / " + this.inboundReceived + " (" + inPct + "%)");
-		String rs = "";
-		for (int i : rands) {rs += i + " ";}
-		rands.clear();
-		logger.debug("Random numbers: " + rs);
+		//String rs = "";
+		//for (int i : rands) {rs += i + " ";}
+		//rands.clear();
+		//logger.debug("Random numbers: " + rs);
 	}
 
 	private boolean shouldDropPacket() {

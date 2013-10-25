@@ -108,7 +108,7 @@ public class Node implements Serializable {
 		curTime.add(Calendar.MILLISECOND, (int) (-1 * DetectMain.HB_PERIOD_MS));
 		lastCheckinTime.setTimeInMillis(this.getLastCheckinRcv());
 		if (state.equals(NodeState.SUSPECT)) {
-			if((currentTime - suspectTime) >= (2 * DetectMain.HB_PERIOD_MS)) {
+			if((currentTime - suspectTime) >= (3 * DetectMain.HB_PERIOD_MS)) {
 				suspectTime = 0;
 				this.state = NodeState.OFFLINE;
 			}
@@ -119,6 +119,17 @@ public class Node implements Serializable {
 			}
 		}
 		return state;
+	}
+	
+	@Override
+	public String toString() {
+		return "{ID: " + id +
+			   " lastCheckinRcv: " + lastCheckinRcv + 
+			   " lastCheckinSent: " + lastCheckinSent + 
+			   " suspectTime: " + suspectTime + 
+			   " seqHighWater: " + seqHighWaterMark +
+			   " state: " + state +
+			   " leader: " + leaderId + "}";
 	}
 
 	@Override

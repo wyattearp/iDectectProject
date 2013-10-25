@@ -7,5 +7,6 @@ public interface ElectionManager extends ElectionThreadListener, LeaderChangeLis
 	public void start() throws UnknownHostException;
 	public void startNewElection();
 	public void stop();
+	public void addMonitor(ElectionMonitor newMonitor);
 	
 }

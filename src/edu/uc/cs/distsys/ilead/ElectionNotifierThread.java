@@ -7,6 +7,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import edu.uc.cs.distsys.Logger;
+import edu.uc.cs.distsys.comms.MessageDroppedException;
 import edu.uc.cs.distsys.comms.MessageListener;
 
 public class ElectionNotifierThread implements Runnable {
@@ -17,7 +18,7 @@ public class ElectionNotifierThread implements Runnable {
 	private int id;
 	private Random randomNumberGen;
 	private int transactionId;
-	private ElectionManager tracker;
+	private ElectionManager electionMgr;
 	private ElectionComms comms;
 	private Logger logger;
 	
@@ -31,7 +32,7 @@ public class ElectionNotifierThread implements Runnable {
 		this.id = currentNodeId;
 		this.randomNumberGen = new Random(System.currentTimeMillis());
 		this.comms = comms;
-		this.tracker = tracker;
+		this.electionMgr = tracker;
 		this.logger = logger;
 		this.answerListener = new ElectionAnswerListener();
 		this.coordinatorListener = new CoordinatorListener();
@@ -42,20 +43,26 @@ public class ElectionNotifierThread implements Runnable {
 	}
 	
 	@Override
-	public void run() {		
-		logger.log("Starting a new election...");
-		// P broadcasts an election message (inquiry) to all other processes with higher process IDs, expecting an "I am alive" response from them if they are alive.
-		this.transactionId = this.randomNumberGen.nextInt();
-		ElectionMessage e = new ElectionMessage(this.id, this.transactionId);
+	public void run() {
+		boolean threadStarted = false;
 		try {
-			this.electionAnswers.clear();
-			this.coordinatorMessages.clear();
-			this.comms.electionComms.send(e);
-		} catch (IOException ioException) {
-			// TODO: yea right, like I care
-		}
-		
-		try {
+			logger.log("Starting a new election...");
+			this.electionMgr.onElectionThreadStart();
+			threadStarted = true;
+			// P broadcasts an election message (inquiry) to all other processes with higher process IDs, expecting an "I am alive" response from them if they are alive.
+			this.transactionId = this.randomNumberGen.nextInt();
+			ElectionMessage e = new ElectionMessage(this.id, this.transactionId);
+			try {
+				this.electionAnswers.clear();
+				this.coordinatorMessages.clear();
+				this.comms.electionComms.send(e);
+			} catch (MessageDroppedException mde) {
+				logger.debug("DEBUG: " + mde);
+			} catch (IOException ioException) {
+				// TODO: yea right, like I care
+				logger.error("ERROR: " + ioException);
+			}
+			
 			// Wait for a certain amount of time for answers
 			ElectionAnswerMessage msg = this.electionAnswers.poll(ELECTION_ANSWER_TIMEOUT_MS, TimeUnit.MILLISECONDS);
 			
@@ -66,12 +73,12 @@ public class ElectionNotifierThread implements Runnable {
 				// If we get a coordinator message, we have a new leader
 				if (coordMsg != null) {
 					this.logger.log("Found a new leader: " + msg.getSenderId());
-					this.tracker.onNewLeader(coordMsg.getSenderId());
+					this.electionMgr.onNewLeader(coordMsg.getSenderId());
 				}
 				// Restart the election process :-(
 				else {
 					this.logger.log("Never got the coordinator message, restarting the election");
-					this.tracker.startNewElection();
+					this.electionMgr.startNewElection();
 				}
 			} 
 			// If it doesn't hear back from anyone, it is the leader
@@ -79,16 +86,22 @@ public class ElectionNotifierThread implements Runnable {
 				try {
 					this.logger.log("Didn't receive an election response, I'm the leader!");
 					this.comms.coordinatorComms.send(new CoordinatorMessage(this.id));
-					this.tracker.onNewLeader(this.id);
+					this.electionMgr.onNewLeader(this.id);
+				} catch (MessageDroppedException mde) {
+					this.logger.debug("DEBUG: " + mde);
 				} catch (IOException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 			}
-		} catch (InterruptedException ex) {}
-		
-		this.comms.electionAnswerNotifier.removeListener(this.answerListener);
-		this.comms.coordinatorNotifier.removeListener(this.coordinatorListener);
+		} catch (InterruptedException ex) {
+			this.logger.error("Election thread interrupted");
+		} finally {
+			this.comms.electionAnswerNotifier.removeListener(this.answerListener);
+			this.comms.coordinatorNotifier.removeListener(this.coordinatorListener);
+			if (threadStarted)
+				this.electionMgr.onElectionThreadEnd();
+		}
 	}
 	
 	private class ElectionAnswerListener implements MessageListener<ElectionAnswerMessage> {

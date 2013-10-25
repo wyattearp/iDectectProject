@@ -1,8 +1,8 @@
 package edu.uc.cs.distsys.comms;
 
 import java.io.IOException;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -21,7 +21,7 @@ public class NotifyThread<T extends Message> implements Runnable {
 		this.myNodeId = nodeId;
 		this.commWrapper = commWrapper;
 		this.listLock = new ReentrantLock();
-		this.listeners = new LinkedList<MessageListener<T>>();
+		this.listeners = new CopyOnWriteArrayList<MessageListener<T>>();
 		if (listener != null)
 			this.listeners.add(listener);
 	}
@@ -63,6 +63,9 @@ public class NotifyThread<T extends Message> implements Runnable {
 					} finally {
 						this.listLock.unlock();
 					}
+				}
+				catch (MessageDroppedException mde) {
+					logger.debug("Message dropped: " + mde);
 				}
 				catch (IOException e) {
 					//e.printStackTrace();
