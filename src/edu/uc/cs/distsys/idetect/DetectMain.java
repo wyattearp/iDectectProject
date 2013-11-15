@@ -16,7 +16,7 @@ import edu.uc.cs.distsys.LogHelper;
 import edu.uc.cs.distsys.Logger;
 import edu.uc.cs.distsys.Node;
 import edu.uc.cs.distsys.NodeState;
-import edu.uc.cs.distsys.comms.MessageListener;
+import edu.uc.cs.distsys.comms.MessageHandler;
 import edu.uc.cs.distsys.comms.NotifyThread;
 import edu.uc.cs.distsys.ilead.ElectionManager;
 import edu.uc.cs.distsys.ilead.ElectionMonitor;
@@ -24,8 +24,43 @@ import edu.uc.cs.distsys.ilead.LeaderChangeListener;
 import edu.uc.cs.distsys.ilead.LeaderMain;
 import edu.uc.cs.distsys.ui.NodeStatusViewThread;
 
-public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListener, FailureListener {
+public class DetectMain implements LeaderChangeListener, FailureListener {
 
+	private class HeartbeatListener extends MessageHandler<Heartbeat> {
+		public HeartbeatListener(Logger logger) {
+			super(logger);
+		}
+	
+		@Override
+		public void handleMessage(Heartbeat status) {
+			try {
+				DetectMain.this.heartbeatLock.lock();
+				if (!nodes.containsKey(status.getNodeId())) {
+					logger.log("Discovered new node - " + status.getNodeId());
+					Node n = new Node(status);
+					DetectMain.this.nodes.put(status.getNodeId(), n);
+					DetectMain.this.statusViewThread.addMonitoredNode(n);
+				} else {
+					logger.debug("Received heartbeat from node " + status.getNodeId());
+					if (DetectMain.this.nodes.get(status.getNodeId()).updateStatus(status)) {
+						// TODO: check leader id of other node? 
+						if (DetectMain.this.myNode.getLeaderId() == DetectMain.this.myNode.getId() && DetectMain.this.myNode.getLeaderId() > status.getLeaderId())
+							DetectMain.this.electionMgr.startNewElection();
+						// Go through all reported failed nodes and update local state if necessary
+						for (Node failNode : status.getFailedNodes()) {
+							DetectMain.this.verifyFailedNode(failNode);
+						}
+					} else {
+						logger.error("Warning - Received out-of-order heartbeat from node " + status.getNodeId());
+					}
+				}
+				DetectMain.this.statusViewThread.updateUI();
+			} finally {
+				DetectMain.this.heartbeatLock.unlock();
+			}
+		}		
+	}
+	
 	private static final long HB_INIT_DELAY		    = 0;
 	private static final long FAIL_DETECT_PERIOD_MS = 750;
 	public static final long  HB_PERIOD_MS			= 500;
@@ -42,6 +77,7 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 	private ElectionManager electionMgr;
 	private Node myNode;
 	private HeartbeatThread hbThread;
+	private HeartbeatListener hbListener;
 
 	public DetectMain(int nodeId, List<Integer> peers) {
 		this.logger = new LogHelper(nodeId, System.out, System.err, null);
@@ -62,9 +98,10 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 
 	public void start() throws UnknownHostException {
 		this.uiThread.start();
+		this.hbListener = new HeartbeatListener(logger);
 		this.hbThread = new HeartbeatThread(this.myNode.getId(), failedNodes, heartbeatLock, logger); 
 		this.detectorThread = Executors.defaultThreadFactory().newThread(
-				new NotifyThread<Heartbeat>(this.myNode.getId(), hbThread.getCommsWrapper(), this, logger));
+				new NotifyThread<Heartbeat>(this.myNode.getId(), hbThread.getCommsWrapper(), hbListener, logger));
 		this.detectorThread.start();
 		this.scheduledExecutor.scheduleAtFixedRate(hbThread, HB_INIT_DELAY, HB_PERIOD_MS, TimeUnit.MILLISECONDS);
 		FailureDetectionThread fdt = new FailureDetectionThread(nodes, heartbeatLock, this);
@@ -82,6 +119,7 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 		this.scheduledExecutor.shutdownNow();
 		this.hbThread.getCommsWrapper().close();
 		this.detectorThread.interrupt();
+		this.hbListener.stop();
 		this.uiThread.interrupt();
 		this.electionMgr.stop();
 		this.logger.log("Detector shutting down");
@@ -90,35 +128,6 @@ public class DetectMain implements MessageListener<Heartbeat>, LeaderChangeListe
 	
 	public Logger getLogger() {
 		return this.logger;
-	}
-
-	@Override
-	public void notifyMessage(Heartbeat status) {
-		try {
-			this.heartbeatLock.lock();
-			if (!nodes.containsKey(status.getNodeId())) {
-				logger.log("Discovered new node - " + status.getNodeId());
-				Node n = new Node(status);
-				this.nodes.put(status.getNodeId(), n);
-				this.statusViewThread.addMonitoredNode(n);
-			} else {
-				logger.debug("Received heartbeat from node " + status.getNodeId());
-				if (this.nodes.get(status.getNodeId()).updateStatus(status)) {
-					// TODO: check leader id of other node? 
-					if (this.myNode.getLeaderId() == this.myNode.getId() && this.myNode.getLeaderId() > status.getLeaderId())
-						this.electionMgr.startNewElection();
-					// Go through all reported failed nodes and update local state if necessary
-					for (Node failNode : status.getFailedNodes()) {
-						this.verifyFailedNode(failNode);
-					}
-				} else {
-					logger.error("Warning - Received out-of-order heartbeat from node " + status.getNodeId());
-				}
-			}
-			this.statusViewThread.updateUI();
-		} finally {
-			this.heartbeatLock.unlock();
-		}
 	}
 	
 	public void addElectionMonitor(ElectionMonitor monitor) {

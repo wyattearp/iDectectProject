@@ -20,7 +20,7 @@ import edu.uc.cs.distsys.ilead.ElectionMonitor;
 public class UnnecessaryLeaderElections extends LeaderTest implements ElectionMonitor {
 
 	final static int numLocalNodes = 12;
-	final static int testDurationMinutes = 20;
+	final static int testDurationMinutes = 5;
 	final static String PASSED_A5_MSG = "Req A5 Passed: In an environment with 10% packet loss, iLead shall average no more than one unnecessary leader election per minute.";
 	final static String FAILED_A5_MSG = "Req A5 Failed";
 	protected static final long ELECTION_TIMEOUT_SEC = 6;
@@ -37,7 +37,7 @@ public class UnnecessaryLeaderElections extends LeaderTest implements ElectionMo
 	public void setup() {
 		this.electionOverCountdown = new CountDownLatch(numLocalNodes);
 		try {
-			this.electionData = startNodes(numLocalNodes, this, 500);
+			this.electionData = startNodes(numLocalNodes, this, 5000);
 		} catch (UnknownHostException e) {
 			assertTrue(e.toString(), false);
 		}

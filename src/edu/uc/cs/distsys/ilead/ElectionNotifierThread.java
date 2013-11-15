@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 import edu.uc.cs.distsys.Logger;
 import edu.uc.cs.distsys.comms.MessageDroppedException;
+import edu.uc.cs.distsys.comms.MessageHandler;
 import edu.uc.cs.distsys.comms.MessageListener;
 
 public class ElectionNotifierThread implements Runnable {
@@ -34,8 +35,8 @@ public class ElectionNotifierThread implements Runnable {
 		this.comms = comms;
 		this.electionMgr = tracker;
 		this.logger = logger;
-		this.answerListener = new ElectionAnswerListener();
-		this.coordinatorListener = new CoordinatorListener();
+		this.answerListener = new ElectionAnswerListener(logger);
+		this.coordinatorListener = new CoordinatorListener(logger);
 		this.comms.electionAnswerNotifier.addListener(answerListener);
 		this.comms.coordinatorNotifier.addListener(coordinatorListener);
 		this.electionAnswers = new LinkedBlockingQueue<ElectionAnswerMessage>();
@@ -103,9 +104,13 @@ public class ElectionNotifierThread implements Runnable {
 		}
 	}
 	
-	private class ElectionAnswerListener implements MessageListener<ElectionAnswerMessage> {
+	private class ElectionAnswerListener extends MessageHandler<ElectionAnswerMessage> {
+		public ElectionAnswerListener(Logger logger) {
+			super(logger);
+		}
+
 		@Override
-		public void notifyMessage(ElectionAnswerMessage message) {
+		public void handleMessage(ElectionAnswerMessage message) {
 			if (message.getDestinationNodeId() == ElectionNotifierThread.this.id && 
 				message.getTransactionId() == ElectionNotifierThread.this.transactionId) {
 				ElectionNotifierThread.this.electionAnswers.add(message);
@@ -113,9 +118,13 @@ public class ElectionNotifierThread implements Runnable {
 		}
 	}
 	
-	private class CoordinatorListener implements MessageListener<CoordinatorMessage> {
+	private class CoordinatorListener extends MessageHandler<CoordinatorMessage> {
+		public CoordinatorListener(Logger logger) {
+			super(logger);
+		}
+
 		@Override
-		public void notifyMessage(CoordinatorMessage message) {
+		public void handleMessage(CoordinatorMessage message) {
 			ElectionNotifierThread.this.coordinatorMessages.add(message);
 		}
 	}

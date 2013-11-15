@@ -12,7 +12,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import edu.uc.cs.distsys.Logger;
 import edu.uc.cs.distsys.comms.MessageDroppedException;
-import edu.uc.cs.distsys.comms.MessageListener;
+import edu.uc.cs.distsys.comms.MessageHandler;
 import edu.uc.cs.distsys.comms.MulticastWrapper;
 import edu.uc.cs.distsys.comms.NotifyThread;
 
@@ -58,9 +58,9 @@ public class LeaderMain implements ElectionManager {
 		this.electionComms.coordinatorComms = new MulticastWrapper<CoordinatorMessage>(
 				COORD_MSG_PORT, myId, new CoordinatorMessage.CoordinatorFactory(), logger);
 
-		this.electionComms.electionNotifier = new NotifyThread<ElectionMessage>(nodeId, this.electionComms.electionComms, new ElectionListener(), logger);
+		this.electionComms.electionNotifier = new NotifyThread<ElectionMessage>(nodeId, this.electionComms.electionComms, new ElectionListener(logger), logger);
 		this.electionComms.electionAnswerNotifier = new NotifyThread<ElectionAnswerMessage>(nodeId, this.electionComms.electionAnswerComms, null, logger);
-		this.electionComms.coordinatorNotifier = new NotifyThread<CoordinatorMessage>(nodeId, this.electionComms.coordinatorComms, new CoordinatorListener(), logger);
+		this.electionComms.coordinatorNotifier = new NotifyThread<CoordinatorMessage>(nodeId, this.electionComms.coordinatorComms, new CoordinatorListener(logger), logger);
 		
 		this.electionMsgThread = Executors.defaultThreadFactory().newThread(electionComms.electionNotifier);
 		this.electionAnswerThread = Executors.defaultThreadFactory().newThread(electionComms.electionAnswerNotifier);
@@ -139,7 +139,7 @@ public class LeaderMain implements ElectionManager {
 	
 	@Override
 	public void onLeaderFailed() {
-System.err.println("LEADER FAILED!");
+logger.error("LEADER FAILED!");
 		for (LeaderChangeListener listener : this.newLeaderListeners)
 			listener.onLeaderFailed();
 		if (! electionInProgress) {
@@ -147,9 +147,13 @@ System.err.println("LEADER FAILED!");
 		}
 	}
 	
-	private class ElectionListener implements MessageListener<ElectionMessage> {
+	private class ElectionListener extends MessageHandler<ElectionMessage> {
+		public ElectionListener(Logger logger) {
+			super(logger);
+		}
+
 		@Override
-		public void notifyMessage(ElectionMessage message) {
+		public void handleMessage(ElectionMessage message) {
 			// Only respond to election requests from lower processes
 			if (message.getSenderId() < LeaderMain.this.myId) {
 				try {
@@ -161,15 +165,18 @@ System.err.println("LEADER FAILED!");
 					logger.debug("ERROR: " + mde);
 				} catch (IOException e) {
 					logger.error("ERROR (LeaderMain-ElectionListener): " + e);
-					//e.printStackTrace();
 				}
 			}
 		}
 	}
 	
-	private class CoordinatorListener implements MessageListener<CoordinatorMessage> {
+	private class CoordinatorListener extends MessageHandler<CoordinatorMessage> {
+		public CoordinatorListener(Logger logger) {
+			super(logger);
+		}
+
 		@Override
-		public void notifyMessage(CoordinatorMessage message) {
+		public void handleMessage(CoordinatorMessage message) {
 			LeaderMain.this.logger.debug("Received notification of a new leader: " + message.getSenderId());
 			LeaderMain.this.onNewLeader(message.getSenderId());
 		}
