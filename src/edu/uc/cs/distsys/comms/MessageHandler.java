@@ -11,8 +11,10 @@ abstract public class MessageHandler<T extends Message> implements MessageListen
 	private Logger logger;
 	private BlockingQueue<T> messageQueue;
 	private Thread myThread;
+	private Class<T> clazz;
 	
-	public MessageHandler(Logger logger, boolean autoStart) {
+	public MessageHandler(Class<T> cls, Logger logger, boolean autoStart) {
+		this.clazz = cls;
 		this.logger = logger;
 		this.messageQueue = new LinkedBlockingQueue<T>();
 		if (autoStart) {
@@ -20,8 +22,8 @@ abstract public class MessageHandler<T extends Message> implements MessageListen
 		}
 	}
 
-	public MessageHandler(Logger logger) {
-		this(logger, true);
+	public MessageHandler(Class<T> cls, Logger logger) {
+		this(cls, logger, true);
 	}
 	
 	public void start() {
@@ -47,9 +49,9 @@ abstract public class MessageHandler<T extends Message> implements MessageListen
 				this.handleMessage(this.messageQueue.take());
 			}
 		} catch (InterruptedException e) {
-			logger.log("Message handler shutting down");
+			logger.log(clazz.getSimpleName() + " Message handler shutting down");
 		} catch (Throwable t) {
-			logger.error("Uncaught exception: " + t);
+			logger.error(clazz.getSimpleName() + " Uncaught exception: " + t);
 			t.printStackTrace();
 		}
 	}

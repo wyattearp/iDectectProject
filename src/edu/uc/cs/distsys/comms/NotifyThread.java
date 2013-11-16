@@ -15,8 +15,10 @@ public class NotifyThread<T extends Message> implements Runnable {
 	private Lock listLock;
 	private List<MessageListener<T>> listeners;
 	private Logger logger;
+	private Class<T> clazz;
 	
-	public NotifyThread(int nodeId, CommsWrapper<T> commWrapper, MessageListener<T> listener, Logger logger) {
+	public NotifyThread(int nodeId, CommsWrapper<T> commWrapper, MessageListener<T> listener, Class<T> cls, Logger logger) {
+		this.clazz = cls;
 		this.logger = logger;
 		this.myNodeId = nodeId;
 		this.commWrapper = commWrapper;
@@ -50,7 +52,7 @@ public class NotifyThread<T extends Message> implements Runnable {
 	
 	@Override
 	public void run() {
-		logger.log("Starting up notify thread...");
+		logger.log("Starting up notify thread (" + clazz.getSimpleName() + ")...");
 		try {
 			while (!Thread.currentThread().isInterrupted()) {
 				try {
@@ -65,12 +67,12 @@ public class NotifyThread<T extends Message> implements Runnable {
 					}
 				}
 				catch (MessageDroppedException mde) {
-					logger.debug("Message dropped: " + mde);
+					logger.debug("[" + clazz.getSimpleName() + "] Message dropped: " + mde);
 				}
 				catch (IOException e) {
 					//e.printStackTrace();
 					if (!Thread.currentThread().isInterrupted()) 
-						logger.error("ERROR: " + e);
+						logger.error("[" + clazz.getSimpleName() + "] ERROR: " + e);
 				}
 			}
 		} finally {

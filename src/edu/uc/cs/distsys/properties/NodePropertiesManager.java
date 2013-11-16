@@ -75,9 +75,9 @@ public class NodePropertiesManager {
 		String line = "Displaying properties from " + this.file.getAbsoluteFile() + ":";
 		for (String key : this.properties.stringPropertyNames()) {
 			String value = this.properties.getProperty(key);
-			line += "\n" + key + " => " + value;
+			line += ", " + key + " => " + value;
 		}
-		logger.log(line);
+		logger.debug(line);
 	}
 
 	public void setProperties(Node node) {

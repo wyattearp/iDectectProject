@@ -106,7 +106,7 @@ public class ElectionNotifierThread implements Runnable {
 	
 	private class ElectionAnswerListener extends MessageHandler<ElectionAnswerMessage> {
 		public ElectionAnswerListener(Logger logger) {
-			super(logger);
+			super(ElectionAnswerMessage.class, logger);
 		}
 
 		@Override
@@ -120,7 +120,7 @@ public class ElectionNotifierThread implements Runnable {
 	
 	private class CoordinatorListener extends MessageHandler<CoordinatorMessage> {
 		public CoordinatorListener(Logger logger) {
-			super(logger);
+			super(CoordinatorMessage.class, logger);
 		}
 
 		@Override

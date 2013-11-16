@@ -276,4 +276,8 @@ public class Node implements Serializable {
 		
 	}
 
+	public boolean isLeader() {
+		return (this.leaderId == this.id);
+	}
+
 }

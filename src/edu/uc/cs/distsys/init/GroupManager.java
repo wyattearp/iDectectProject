@@ -6,6 +6,7 @@ import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -15,27 +16,59 @@ import edu.uc.cs.distsys.comms.CommsWrapper;
 import edu.uc.cs.distsys.comms.MessageDroppedException;
 import edu.uc.cs.distsys.comms.MessageHandler;
 import edu.uc.cs.distsys.comms.MulticastWrapper;
+import edu.uc.cs.distsys.comms.NotifyThread;
 
 public class GroupManager {
 
 	private class GroupRequestListener extends MessageHandler<GroupRequest> {
 		public GroupRequestListener(Logger logger) {
-			super(logger, false); // Only start the handler once we've joined a group
+			super(GroupRequest.class, logger, false); // Only start the handler once we've joined a group
 		}
 		
 		@Override
-		public void handleMessage(GroupRequest message) {
-			// TODO Auto-generated method stub
+		public void handleMessage(GroupRequest message) {	
+			GroupManager.this.logger.log("Received group request from " + message.getSenderId());
+			if (GroupManager.this.myNode.isLeader()) {
+				GroupInvitation invite = null;
+				if (GroupManager.this.cookieMappings.containsKey(message.getGroupCookie().getValue())) {
+					invite = new GroupInvitation(GroupManager.this.myNode.getId(), message.getSenderId(), 0, Cookie.INVALID_COOKIE);
+				} else {
+					Random r = new Random();
+					Cookie newCookie = new Cookie(r.nextLong());
+					while (GroupManager.this.cookieMappings.containsKey(newCookie)) {
+						newCookie = new Cookie(r.nextLong());
+					}
+					GroupManager.this.cookieMappings.put(newCookie, message.getSenderId());
+					invite = new GroupInvitation(GroupManager.this.myNode.getId(), message.getSenderId(), 
+							GroupManager.this.myNode.getGroupId(), newCookie);
+				}
+				
+				int sendAttemptsLeft = 5;
+				while (sendAttemptsLeft > 0) {
+					try {
+						GroupManager.this.groupInvitor.send(invite);
+						break;
+					} catch (IOException e) {
+						GroupManager.this.logger.error("Failed to send invite to new node: " + e.getMessage());
+						sendAttemptsLeft--;
+					}
+				}
+				if (sendAttemptsLeft == 0) {
+					GroupManager.this.logger.error("Unable to send invite, this is not good!");
+				}
+			}
 		}
 	}
 	
 	private class GroupInvitationListener extends MessageHandler<GroupInvitation> {
 		public GroupInvitationListener(Logger logger) {
-			super(logger);
+			super(GroupInvitation.class, logger);
 		}
 		
 		@Override
 		public void handleMessage(GroupInvitation message) {
+			GroupManager.this.logger.log("RECEIVED INVITE");
+			
 			if (message.getInviteeId() == GroupManager.this.myNode.getId()) {
 				GroupManager.this.myInvitations.add(message);
 			} else {
@@ -58,6 +91,8 @@ public class GroupManager {
 	private CommsWrapper<GroupInvitation> groupInvitor;
 	private MessageHandler<GroupRequest> requestHandler;
 	private MessageHandler<GroupInvitation> inviteHandler;
+	private Thread requestThread;
+	private Thread inviteThread;
 
 	private BlockingQueue<GroupInvitation> myInvitations;
 	
@@ -71,6 +106,15 @@ public class GroupManager {
 		this.groupInvitor = new MulticastWrapper<GroupInvitation>(INVITATION_PORT, myNode.getId(), new GroupInvitation.GroupInvitationFactory(), logger);
 		this.requestHandler = new GroupRequestListener(logger);
 		this.inviteHandler = new GroupInvitationListener(logger);
+		
+		this.requestThread = Executors.defaultThreadFactory().newThread(
+				new NotifyThread<GroupRequest>(myNode.getId(), groupRequestor, requestHandler, GroupRequest.class, logger));
+		this.inviteThread = Executors.defaultThreadFactory().newThread(
+				new NotifyThread<GroupInvitation>(myNode.getId(), groupInvitor, inviteHandler, GroupInvitation.class, logger));
+		this.requestThread.start();
+		this.inviteThread.start();
+//		this.requestHandler.start();
+//		this.inviteHandler.start();
 	}
 
 	public void shutdown() {
@@ -102,7 +146,7 @@ public class GroupManager {
 				
 				// If we were the leader previously, we must have gone away and come back before 
 				// any other process noticed. Let's just join up and start an election.
-				if (myNode.getLeaderId() == myNode.getId() && 
+				if (myNode.isLeader() && 
 						!myNode.getGroupCookie().equals(Cookie.INVALID_COOKIE)) {
 					//TODO
 					//TODO

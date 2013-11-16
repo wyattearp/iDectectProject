@@ -1,6 +1,17 @@
 package edu.uc.cs.distsys.init;
 
-public class Cookie {
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
+import edu.uc.cs.distsys.Node;
+
+public class Cookie implements Serializable {
 
 	public static final Cookie INVALID_COOKIE = new Cookie(0);
 	

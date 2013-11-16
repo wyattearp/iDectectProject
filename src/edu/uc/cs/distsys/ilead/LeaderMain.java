@@ -58,9 +58,12 @@ public class LeaderMain implements ElectionManager {
 		this.electionComms.coordinatorComms = new MulticastWrapper<CoordinatorMessage>(
 				COORD_MSG_PORT, myId, new CoordinatorMessage.CoordinatorFactory(), logger);
 
-		this.electionComms.electionNotifier = new NotifyThread<ElectionMessage>(nodeId, this.electionComms.electionComms, new ElectionListener(logger), logger);
-		this.electionComms.electionAnswerNotifier = new NotifyThread<ElectionAnswerMessage>(nodeId, this.electionComms.electionAnswerComms, null, logger);
-		this.electionComms.coordinatorNotifier = new NotifyThread<CoordinatorMessage>(nodeId, this.electionComms.coordinatorComms, new CoordinatorListener(logger), logger);
+		this.electionComms.electionNotifier = new NotifyThread<ElectionMessage>(
+				nodeId, this.electionComms.electionComms, new ElectionListener(logger), ElectionMessage.class, logger);
+		this.electionComms.electionAnswerNotifier = new NotifyThread<ElectionAnswerMessage>(
+				nodeId, this.electionComms.electionAnswerComms, null, ElectionAnswerMessage.class, logger);
+		this.electionComms.coordinatorNotifier = new NotifyThread<CoordinatorMessage>(
+				nodeId, this.electionComms.coordinatorComms, new CoordinatorListener(logger), CoordinatorMessage.class, logger);
 		
 		this.electionMsgThread = Executors.defaultThreadFactory().newThread(electionComms.electionNotifier);
 		this.electionAnswerThread = Executors.defaultThreadFactory().newThread(electionComms.electionAnswerNotifier);
@@ -149,7 +152,7 @@ logger.error("LEADER FAILED!");
 	
 	private class ElectionListener extends MessageHandler<ElectionMessage> {
 		public ElectionListener(Logger logger) {
-			super(logger);
+			super(ElectionMessage.class, logger);
 		}
 
 		@Override
@@ -172,7 +175,7 @@ logger.error("LEADER FAILED!");
 	
 	private class CoordinatorListener extends MessageHandler<CoordinatorMessage> {
 		public CoordinatorListener(Logger logger) {
-			super(logger);
+			super(CoordinatorMessage.class, logger);
 		}
 
 		@Override

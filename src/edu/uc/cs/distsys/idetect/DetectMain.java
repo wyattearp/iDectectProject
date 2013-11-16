@@ -22,7 +22,6 @@ import edu.uc.cs.distsys.ilead.ElectionManager;
 import edu.uc.cs.distsys.ilead.ElectionMonitor;
 import edu.uc.cs.distsys.ilead.LeaderChangeListener;
 import edu.uc.cs.distsys.ilead.LeaderMain;
-import edu.uc.cs.distsys.properties.NodePropertiesManager;
 import edu.uc.cs.distsys.init.GroupJoinException;
 import edu.uc.cs.distsys.init.GroupManager;
 import edu.uc.cs.distsys.ui.NodeStatusViewThread;
@@ -31,7 +30,7 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 
 	private class HeartbeatListener extends MessageHandler<Heartbeat> {
 		public HeartbeatListener(Logger logger) {
-			super(logger);
+			super(Heartbeat.class, logger);
 		}
 	
 		@Override
@@ -81,7 +80,7 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 	private Node myNode;
 	private HeartbeatThread hbThread;
 	private HeartbeatListener hbListener;
-	private NodePropertiesManager nodeProperties;
+//	private NodePropertiesManager nodeProperties;
 	private GroupManager groupManager;
 
 	public DetectMain(int nodeId, List<Integer> peers) {
@@ -112,7 +111,7 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 		this.hbListener = new HeartbeatListener(logger);
 		this.hbThread = new HeartbeatThread(this.myNode.getId(), failedNodes, heartbeatLock, logger); 
 		this.detectorThread = Executors.defaultThreadFactory().newThread(
-				new NotifyThread<Heartbeat>(this.myNode.getId(), hbThread.getCommsWrapper(), hbListener, logger));
+				new NotifyThread<Heartbeat>(this.myNode.getId(), hbThread.getCommsWrapper(), hbListener, Heartbeat.class, logger));
 		this.detectorThread.start();
 		this.scheduledExecutor.scheduleAtFixedRate(hbThread, HB_INIT_DELAY, HB_PERIOD_MS, TimeUnit.MILLISECONDS);
 		FailureDetectionThread fdt = new FailureDetectionThread(nodes, heartbeatLock, this);
@@ -127,13 +126,13 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 	}
 	
 	public void stop() {
+		this.groupManager.shutdown();
 		this.scheduledExecutor.shutdownNow();
-		this.hbThread.getCommsWrapper().close();
+		if (this.hbThread != null) this.hbThread.getCommsWrapper().close();
 		this.detectorThread.interrupt();
 		this.hbListener.stop();
 		this.uiThread.interrupt();
 		this.electionMgr.stop();
-		this.nodeProperties.save();
 		this.logger.log("Detector shutting down");
 		this.logger.close();
 	}
@@ -260,9 +259,9 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 		for (int i = 1; i < args.length; i++) {
 			peers.add(Integer.parseInt(args[i]));
 		}
-				
+			
+		final DetectMain detector = new DetectMain(node, peers);
 		try {
-			final DetectMain detector = new DetectMain(node, peers);
 			detector.setGroupId(group);
 			Runtime.getRuntime().addShutdownHook(new Thread() {
 				@Override
@@ -274,9 +273,11 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 		} catch (UnknownHostException e) {
 			System.out.println("Something horrible happened and there was nothing we could do about it");
 			e.printStackTrace();
+			detector.stop();
 		} catch (GroupJoinException e) {
 			System.err.println("Unable to join group: " + e.getMessage());
 			e.printStackTrace();
+			detector.stop();		
 		}
 	}
 
