@@ -82,19 +82,27 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 	private PropertiesManager nodeProperties;
 
 	public DetectMain(int nodeId, List<Integer> peers) {
+		// load up stored properties if available
+		this.myNode = new Node(nodeId);
+		this.nodeProperties = new PropertiesManager(myNode, this.logger);
+		if (!this.nodeProperties.load()) {
+			// unable to load properties from file, we're starting fresh
+			this.nodeProperties.save();
+		} else {
+			// there's previously stored data, use that node inst
+			this.myNode = this.nodeProperties.getNode();
+
+		}
+		// TODO: these methods need to be called when / where we get updates
+		// this.nodeProperties.setProperties(this.myNode);
+		// this.nodeProperties.save();
 		this.logger = new LogHelper(nodeId, System.out, System.err, null);
 		this.nodes = new HashMap<Integer, Node>();
 		this.failedNodes = new LinkedList<Node>();
 		this.heartbeatLock = new ReentrantLock();
 		this.scheduledExecutor = new ScheduledThreadPoolExecutor(1);
-		this.myNode = new Node(nodeId);
 		this.statusViewThread = new NodeStatusViewThread(this.myNode.getId());
 		this.uiThread = new Thread(statusViewThread);
-		
-		// TODO: arrange these as-necessary, and set myNode to the loaded properties
-		this.nodeProperties = new PropertiesManager(this.myNode.getId(), this.logger);
-		this.nodeProperties.load();
-		this.nodeProperties.setProperties(this.myNode);
 		
 		if (peers != null) {
 			for (int peer : peers) {
