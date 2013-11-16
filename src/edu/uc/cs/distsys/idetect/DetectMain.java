@@ -22,6 +22,7 @@ import edu.uc.cs.distsys.ilead.ElectionManager;
 import edu.uc.cs.distsys.ilead.ElectionMonitor;
 import edu.uc.cs.distsys.ilead.LeaderChangeListener;
 import edu.uc.cs.distsys.ilead.LeaderMain;
+import edu.uc.cs.distsys.properties.PropertiesManager;
 import edu.uc.cs.distsys.ui.NodeStatusViewThread;
 
 public class DetectMain implements LeaderChangeListener, FailureListener {
@@ -78,6 +79,7 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 	private Node myNode;
 	private HeartbeatThread hbThread;
 	private HeartbeatListener hbListener;
+	private PropertiesManager nodeProperties;
 
 	public DetectMain(int nodeId, List<Integer> peers) {
 		this.logger = new LogHelper(nodeId, System.out, System.err, null);
@@ -88,6 +90,11 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 		this.myNode = new Node(nodeId);
 		this.statusViewThread = new NodeStatusViewThread(this.myNode.getId());
 		this.uiThread = new Thread(statusViewThread);
+		
+		// TODO: arrange these as-necessary, and set myNode to the loaded properties
+		this.nodeProperties = new PropertiesManager(this.myNode.getId(), this.logger);
+		this.nodeProperties.load();
+		this.nodeProperties.setProperties(this.myNode);
 		
 		if (peers != null) {
 			for (int peer : peers) {
@@ -122,6 +129,7 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 		this.hbListener.stop();
 		this.uiThread.interrupt();
 		this.electionMgr.stop();
+		this.nodeProperties.save();
 		this.logger.log("Detector shutting down");
 		this.logger.close();
 	}
