@@ -2,7 +2,6 @@ package edu.uc.cs.distsys.properties;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
@@ -21,6 +20,7 @@ public class PropertiesManager {
 		this.node = myNode;
 		this.logger = logger;
 		this.file = new File(this.node.getId() + ".properties");
+		this.properties = new Properties();
 	}
 
 	public boolean load() {
@@ -36,8 +36,6 @@ public class PropertiesManager {
 				display();
 				success = true;
 			} else {
-				logger.debug("Unable to load properties file: "
-						+ this.file.getAbsoluteFile());
 				logger.debug("File will be created when saved...");
 			}
 		} catch (IOException e) {
@@ -93,9 +91,15 @@ public class PropertiesManager {
 	}
 	
 	private void updateInternalNode() {
-		this.node.setGroupId(Integer.parseInt(this.properties.getProperty("GroupID")));
-		this.node.setLeaderId(Integer.parseInt(this.properties.getProperty("LeaderID")));
-		this.node.setGroupCookie(new Cookie(Long.parseLong(this.properties.getProperty("GroupCookie"))));	
+		if (this.properties.getProperty("GroupID") != null) {
+			this.node.setGroupId(Integer.parseInt(this.properties.getProperty("GroupID")));
+		}
+		if (this.properties.getProperty("LeaderID") != null) {
+			this.node.setLeaderId(Integer.parseInt(this.properties.getProperty("LeaderID")));
+		}
+		if (this.properties.getProperty("GroupCookie") != null) {
+			this.node.setGroupCookie(new Cookie(Long.parseLong(this.properties.getProperty("GroupCookie"))));
+		}
 	}
 
 	public Node getNode() {
