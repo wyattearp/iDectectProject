@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import edu.uc.cs.distsys.LogHelper;
 import edu.uc.cs.distsys.idetect.DetectMain;
 import edu.uc.cs.distsys.ilead.ElectionMonitor;
+import edu.uc.cs.distsys.init.GroupJoinException;
 
 public class LeaderTest {
 
@@ -22,7 +23,7 @@ public class LeaderTest {
 		public DetectMain node;
 	}
 	
-	public ConcurrentNavigableMap<Integer, ElectionInfo> startNodes(int numNodes, ElectionMonitor monitor, long nodeStartupTimeMs) throws UnknownHostException {
+	public ConcurrentNavigableMap<Integer, ElectionInfo> startNodes(int numNodes, ElectionMonitor monitor, long nodeStartupTimeMs) throws UnknownHostException, GroupJoinException {
 		ConcurrentNavigableMap<Integer, ElectionInfo> nodeMap = new ConcurrentSkipListMap<Integer, ElectionInfo>();
 		for (int i = 1; i <= numNodes; i++) {
 			int nodeId = i*100;

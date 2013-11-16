@@ -13,6 +13,7 @@ import org.junit.Test;
 
 import edu.uc.cs.distsys.idetect.DetectMain;
 import edu.uc.cs.distsys.ilead.ElectionMonitor;
+import edu.uc.cs.distsys.init.GroupJoinException;
 
 public class LeaderElectionIn3Seconds extends LeaderTest implements ElectionMonitor {
 
@@ -31,6 +32,8 @@ public class LeaderElectionIn3Seconds extends LeaderTest implements ElectionMoni
 		try {
 			this.electionData = startNodes(numNodes, this, 1000);
 		} catch (UnknownHostException e) {
+			assertTrue(e.toString(), false);
+		} catch (GroupJoinException e) {
 			assertTrue(e.toString(), false);
 		}
 	}

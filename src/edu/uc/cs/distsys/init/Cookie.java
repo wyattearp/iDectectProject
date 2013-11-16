@@ -36,4 +36,8 @@ public class Cookie {
 		return true;
 	}
 	
+	@Override
+	public String toString() {
+		return Long.toString(value);
+	}
 }

@@ -98,11 +98,9 @@ public class NodePropertiesManager {
 		if (this.properties.getProperty("LeaderID") != null) {
 			this.node.setLeaderId(Integer.parseInt(this.properties.getProperty("LeaderID")));
 		}
-		/*
 		if (this.properties.getProperty("GroupCookie") != null) {
 			this.node.setGroupCookie(new Cookie(Long.parseLong(this.properties.getProperty("GroupCookie"))));
 		}
-		*/
 	}
 
 	public Node getNode() {

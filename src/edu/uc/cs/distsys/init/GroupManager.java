@@ -90,6 +90,7 @@ public class GroupManager {
 		}
 		
 		try {
+			logger.log("Sending group join request");
 			// Send the group join request
 			this.groupRequestor.send(request);
 			
@@ -97,6 +98,8 @@ public class GroupManager {
 			GroupInvitation invite = myInvitations.poll(INVITATION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
 			
 			if (invite == null) {	// No invite :-(
+				logger.log("Didn't receive an invitation :-(");
+				
 				// If we were the leader previously, we must have gone away and come back before 
 				// any other process noticed. Let's just join up and start an election.
 				if (myNode.getLeaderId() == myNode.getId() && 
@@ -111,15 +114,17 @@ public class GroupManager {
 					cookieMappings.put(newCookie, myNode.getId());
 					myNode.setGroupId(newGroupId);
 					myNode.setGroupCookie(newCookie);
+					logger.log("Starting new group (id=" + newGroupId + ")");
 				}
 			} else {
 				// Make sure our invite wasn't rejected
 				if (invite.getCookie().equals(Cookie.INVALID_COOKIE)) {
-					throw new GroupJoinException("Failed to join group " + invite.getGroupId());
+					throw new GroupJoinException("Failed to join group " + invite.getGroupId() + " (node conflict detected)");
 				}
 				cookieMappings.put(invite.getCookie(), myNode.getId());
 				myNode.setGroupCookie(invite.getCookie());
 				myNode.setGroupId(invite.getGroupId());
+				logger.log("Joined group " + invite.getGroupId() + ", my cookie is " + invite.getCookie());
 			}
 			
 			// If we get here, we've actually joined a group, so we should start listening
