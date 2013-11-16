@@ -36,7 +36,7 @@ public class GroupManager {
 		
 		@Override
 		public void handleMessage(GroupInvitation message) {
-			if (message.getDestinationId() == GroupManager.this.myNode.getId()) {
+			if (message.getDestinationId()/*needs added*/ == GroupManager.this.myNode.getId()) {
 				
 			} else {
 				GroupManager.this.cookieMappings.put(message.getCookie(), message.getSenderId());////SOOOO TIRED
