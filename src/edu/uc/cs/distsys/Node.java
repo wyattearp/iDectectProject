@@ -14,6 +14,7 @@ import java.util.Date;
 
 import edu.uc.cs.distsys.idetect.DetectMain;
 import edu.uc.cs.distsys.idetect.Heartbeat;
+import edu.uc.cs.distsys.init.Cookie;
 
 public class Node implements Serializable {
 
@@ -28,6 +29,7 @@ public class Node implements Serializable {
 	private NodeState state;
 	private int leaderId;
 	private int groupId;
+	private Cookie groupCookie;
 
 	public static Node createFailedNode(int id, NodeState state, int seqNum) {
 		return new Node(id, seqNum, 0, 0, state);
@@ -51,6 +53,7 @@ public class Node implements Serializable {
 		this.lastCheckinSent = checkinSent;
 		this.suspectTime = 0;
 		this.state = initialState;
+		this.groupCookie = Cookie.INVALID_COOKIE;
 	}
 
 	public int getId() {
@@ -87,10 +90,19 @@ public class Node implements Serializable {
 	public long getSuspectTime() {
 		return suspectTime;
 	}
+	
 	public String getSuspectTimeString() {
 		Date d = new Date(this.suspectTime);
 		SimpleDateFormat df2 = new SimpleDateFormat(timeStampFormat);
 		return df2.format(d);
+	}
+	
+	public Cookie getGroupCookie() {
+		return groupCookie;
+	}
+	
+	public void setGroupCookie(Cookie groupCookie) {
+		this.groupCookie = groupCookie;
 	}
 
 	public boolean isOffline() {
