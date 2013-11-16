@@ -10,14 +10,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import edu.uc.cs.distsys.idetect.DetectMain;
 import edu.uc.cs.distsys.ilead.ElectionMonitor;
-import edu.uc.cs.distsys.test.LeaderTest.ElectionInfo;
 
 public class DeterministicIdentifier extends LeaderTest implements ElectionMonitor {
 
 	final static int numNodes = 2;
-	final static String PASSED_MSG = "Req A7 Passed:  Processes must use a deterministic identifier (e.g., meaningful name or number assigned to that process)";
+	final static String PASSED_MSG = "Req A7 Passed: Processes must use a deterministic identifier (e.g., meaningful name or number assigned to that process)";
 	final static String FAILED_MSG = "Req A7 Failed";
 	ConcurrentMap<Integer, ElectionInfo> electionData;
 	
