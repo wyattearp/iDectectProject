@@ -15,6 +15,7 @@ import java.util.Date;
 import edu.uc.cs.distsys.idetect.DetectMain;
 import edu.uc.cs.distsys.idetect.Heartbeat;
 import edu.uc.cs.distsys.init.Cookie;
+import edu.uc.cs.distsys.properties.NodePropertiesManager;
 
 public class Node implements Serializable {
 
@@ -30,6 +31,7 @@ public class Node implements Serializable {
 	private int leaderId;
 	private int groupId;
 	private Cookie groupCookie;
+	private NodePropertiesManager properties;
 
 	public static Node createFailedNode(int id, NodeState state, int seqNum) {
 		return new Node(id, seqNum, 0, 0, state);
@@ -54,6 +56,12 @@ public class Node implements Serializable {
 		this.suspectTime = 0;
 		this.state = initialState;
 		this.groupCookie = Cookie.INVALID_COOKIE;
+		
+		// now, load up the node if we can
+		LogHelper logger = new LogHelper(id, System.out, System.err, null);
+		this.properties = new NodePropertiesManager(this,logger);
+		this.properties.load();
+		this.persistProperties();
 	}
 
 	public int getId() {
@@ -103,6 +111,7 @@ public class Node implements Serializable {
 	
 	public void setGroupCookie(Cookie groupCookie) {
 		this.groupCookie = groupCookie;
+		this.persistProperties();
 	}
 
 	public boolean isOffline() {
@@ -236,6 +245,7 @@ public class Node implements Serializable {
 
 	public void setLeaderId(int leaderId) {
 		this.leaderId = leaderId;
+		this.persistProperties();
 	}
 
 	public int getGroupId() {
@@ -244,6 +254,13 @@ public class Node implements Serializable {
 
 	public void setGroupId(int groupId) {
 		this.groupId = groupId;
+		this.persistProperties();
+		
+	}
+	
+	private void persistProperties() {
+		this.properties.setProperties(this);
+		this.properties.save();
 	}
 	
 	public void printNode() {

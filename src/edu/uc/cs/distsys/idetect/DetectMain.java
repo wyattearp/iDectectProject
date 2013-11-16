@@ -22,7 +22,7 @@ import edu.uc.cs.distsys.ilead.ElectionManager;
 import edu.uc.cs.distsys.ilead.ElectionMonitor;
 import edu.uc.cs.distsys.ilead.LeaderChangeListener;
 import edu.uc.cs.distsys.ilead.LeaderMain;
-import edu.uc.cs.distsys.properties.PropertiesManager;
+import edu.uc.cs.distsys.properties.NodePropertiesManager;
 import edu.uc.cs.distsys.ui.NodeStatusViewThread;
 
 public class DetectMain implements LeaderChangeListener, FailureListener {
@@ -79,7 +79,7 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 	private Node myNode;
 	private HeartbeatThread hbThread;
 	private HeartbeatListener hbListener;
-	private PropertiesManager nodeProperties;
+	private NodePropertiesManager nodeProperties;
 
 	public DetectMain(int nodeId, List<Integer> peers) {
 		this.logger = new LogHelper(nodeId, System.out, System.err, null);
@@ -88,18 +88,6 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 		this.heartbeatLock = new ReentrantLock();
 		// load up stored properties if available
 		this.myNode = new Node(nodeId);
-		this.nodeProperties = new PropertiesManager(myNode, this.logger);
-		if (!this.nodeProperties.load()) {
-			// unable to load properties from file, we're starting fresh
-			this.nodeProperties.save();
-		} else {
-			// there's previously stored data, use that node inst
-			this.myNode = this.nodeProperties.getNode();
-
-		}
-		// TODO: these methods need to be called when / where we get updates
-		// this.nodeProperties.setProperties(this.myNode);
-		// this.nodeProperties.save();
 		this.scheduledExecutor = new ScheduledThreadPoolExecutor(1);
 		this.statusViewThread = new NodeStatusViewThread(this.myNode.getId());
 		this.uiThread = new Thread(statusViewThread);
