@@ -68,7 +68,7 @@ public class GroupManager {
 		this.myInvitations = new LinkedBlockingQueue<GroupInvitation>();
 		
 		this.groupRequestor = new MulticastWrapper<GroupRequest>(REQUEST_PORT, myNode.getId(), new GroupRequest.GroupRequestFactory(), logger);
-		this.groupInvitor = new MulticastWrapper<>(INVITATION_PORT, myNode.getId(), new GroupInvitation.GroupInvitationFactory(), logger);
+		this.groupInvitor = new MulticastWrapper<GroupInvitation>(INVITATION_PORT, myNode.getId(), new GroupInvitation.GroupInvitationFactory(), logger);
 		this.requestHandler = new GroupRequestListener(logger);
 		this.inviteHandler = new GroupInvitationListener(logger);
 	}
