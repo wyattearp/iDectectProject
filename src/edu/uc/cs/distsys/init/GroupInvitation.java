@@ -16,13 +16,19 @@ public class GroupInvitation extends Message {
 
 	private static final long serialVersionUID = 6876939369742287913L;
 
+	private final int inviteeNodeId;
 	private final int groupId;
 	private final Cookie cookie;
 	
-	public GroupInvitation(int senderId, int groupId, Cookie cookie) {
+	public GroupInvitation(int senderId, int inviteeId, int groupId, Cookie cookie) {
 		super(senderId);
+		this.inviteeNodeId = inviteeId;
 		this.groupId = groupId;
 		this.cookie = cookie;
+	}
+	
+	public int getInviteeId() {
+		return inviteeNodeId;
 	}
 
 	public int getGroupId() {

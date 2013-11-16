@@ -36,10 +36,12 @@ public class GroupManager {
 		
 		@Override
 		public void handleMessage(GroupInvitation message) {
-			if (message.getDestinationId()/*needs added*/ == GroupManager.this.myNode.getId()) {
-				
+			if (message.getInviteeId() == GroupManager.this.myNode.getId()) {
+				GroupManager.this.myInvitations.add(message);
 			} else {
-				GroupManager.this.cookieMappings.put(message.getCookie(), message.getSenderId());////SOOOO TIRED
+				if (!message.getCookie().equals(Cookie.INVALID_COOKIE)) {
+					GroupManager.this.cookieMappings.put(message.getCookie(), message.getSenderId());
+				}
 			}
 		}
 	}
