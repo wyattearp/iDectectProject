@@ -11,6 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import edu.uc.cs.distsys.ilead.ElectionMonitor;
+import edu.uc.cs.distsys.init.GroupJoinException;
 
 public class DeterministicIdentifier extends LeaderTest implements ElectionMonitor {
 
@@ -24,6 +25,8 @@ public class DeterministicIdentifier extends LeaderTest implements ElectionMonit
 		try {
 			this.electionData = startNodes(numNodes, this, 1000);
 		} catch (UnknownHostException e) {
+			assertTrue(e.toString(), false);
+		} catch (GroupJoinException e) {
 			assertTrue(e.toString(), false);
 		}
 	}

@@ -22,6 +22,8 @@ import edu.uc.cs.distsys.ilead.ElectionManager;
 import edu.uc.cs.distsys.ilead.ElectionMonitor;
 import edu.uc.cs.distsys.ilead.LeaderChangeListener;
 import edu.uc.cs.distsys.ilead.LeaderMain;
+import edu.uc.cs.distsys.init.GroupJoinException;
+import edu.uc.cs.distsys.init.GroupManager;
 import edu.uc.cs.distsys.properties.PropertiesManager;
 import edu.uc.cs.distsys.ui.NodeStatusViewThread;
 
@@ -80,6 +82,7 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 	private HeartbeatThread hbThread;
 	private HeartbeatListener hbListener;
 	private PropertiesManager nodeProperties;
+	private GroupManager groupManager;
 
 	public DetectMain(int nodeId, List<Integer> peers) {
 		// load up stored properties if available
@@ -111,8 +114,13 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 		}
 	}
 
-	public void start() throws UnknownHostException {
+	public void start() throws UnknownHostException, GroupJoinException {
 		this.uiThread.start();
+		
+		// Join a group
+		this.groupManager = new GroupManager(myNode, logger);
+		this.groupManager.locateAndJoinGroup();
+		
 		this.hbListener = new HeartbeatListener(logger);
 		this.hbThread = new HeartbeatThread(this.myNode.getId(), failedNodes, heartbeatLock, logger); 
 		this.detectorThread = Executors.defaultThreadFactory().newThread(
@@ -277,6 +285,9 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 			detector.start();
 		} catch (UnknownHostException e) {
 			System.out.println("Something horrible happened and there was nothing we could do about it");
+			e.printStackTrace();
+		} catch (GroupJoinException e) {
+			System.err.println("Unable to join group: " + e.getMessage());
 			e.printStackTrace();
 		}
 	}

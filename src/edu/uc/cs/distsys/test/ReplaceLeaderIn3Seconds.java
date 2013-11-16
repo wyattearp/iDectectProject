@@ -18,6 +18,7 @@ import org.junit.Test;
 
 import edu.uc.cs.distsys.idetect.DetectMain;
 import edu.uc.cs.distsys.ilead.ElectionMonitor;
+import edu.uc.cs.distsys.init.GroupJoinException;
 
 public class ReplaceLeaderIn3Seconds extends LeaderTest implements ElectionMonitor {
 
@@ -33,7 +34,7 @@ public class ReplaceLeaderIn3Seconds extends LeaderTest implements ElectionMonit
 	BlockingQueue<Integer> votedNodes;
 
 	@Before
-	public void setup() throws UnknownHostException {
+	public void setup() throws UnknownHostException, GroupJoinException {
 		this.electionData = startNodes(numNodes, this, 2000);
 		this.nodesToKill = new LinkedList<DetectMain>();
 		this.votedNodes = new LinkedBlockingQueue<Integer>();

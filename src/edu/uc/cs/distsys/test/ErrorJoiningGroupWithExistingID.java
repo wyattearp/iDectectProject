@@ -1,17 +1,15 @@
 package edu.uc.cs.distsys.test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 import java.net.UnknownHostException;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentMap;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import edu.uc.cs.distsys.idetect.DetectMain;
-import edu.uc.cs.distsys.ilead.ElectionMonitor;
+import edu.uc.cs.distsys.init.GroupJoinException;
 
 public class ErrorJoiningGroupWithExistingID {
 
@@ -29,6 +27,8 @@ public class ErrorJoiningGroupWithExistingID {
 			orig.start();
 		} catch (UnknownHostException e) {
 			assertTrue(e.toString(), false);
+		} catch (GroupJoinException e) {
+			assertTrue(e.toString(), false);
 		}
 	}
 	
@@ -41,6 +41,8 @@ public class ErrorJoiningGroupWithExistingID {
 		try {
 			impostor.start();
 		} catch (UnknownHostException e) {
+			assertTrue(e.toString(), false);
+		} catch (GroupJoinException e) {
 			assertTrue(e.toString(), false);
 		}
 		
