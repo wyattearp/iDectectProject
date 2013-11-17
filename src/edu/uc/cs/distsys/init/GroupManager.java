@@ -27,15 +27,15 @@ public class GroupManager {
 		
 		@Override
 		public void handleMessage(GroupRequest message) {	
-			GroupManager.this.logger.log("Received group request from " + message.getSenderId());
+			GroupManager.this.logger.log("Received group request from " + message.getSenderId() + " cookie - " + message.getGroupCookie());
 			if (GroupManager.this.myNode.isLeader()) {
 				GroupInvitation invite = null;
 				if (GroupManager.this.cookieMappings.containsKey(message.getSenderId())) {
 					if (GroupManager.this.cookieMappings.get(message.getSenderId()).equals(message.getGroupCookie())) {
-						GroupManager.this.logger.log("Node rejoining the group " + message.getSenderId());
+						GroupManager.this.logger.log("Node rejoining the group " + message.getSenderId() + " cookie - " + message.getGroupCookie());
 						invite = new GroupInvitation(GroupManager.this.myNode.getId(), message.getSenderId(), 0, message.getGroupCookie());
 					} else {
-						GroupManager.this.logger.log("Rejecting group request from " + message.getSenderId());
+						GroupManager.this.logger.log("Rejecting group request from " + message.getSenderId() + " cookie - " + message.getGroupCookie());
 						invite = new GroupInvitation(GroupManager.this.myNode.getId(), message.getSenderId(), 0, Cookie.INVALID_COOKIE);
 					}
 				} else {
@@ -159,13 +159,22 @@ public class GroupManager {
 					//TODO
 					//TODO
 					//TODO
+					cookieMappings.put(myNode.getId(), myNode.getGroupCookie());
+					logger.log("Leader rejoining group (id=" + myNode.getGroupId() + ", cookie="+myNode.getGroupCookie()+")");
+					//TODO
+					//TODO
+					//TODO
 				} else { // We must be the first process, start a new group
 					Random r = new Random(System.currentTimeMillis());
 					int newGroupId = r.nextInt(1000);
-					Cookie newCookie = new Cookie(r.nextLong());
-					cookieMappings.put(myNode.getId(), newCookie);
 					myNode.setGroupId(newGroupId);
-					myNode.setGroupCookie(newCookie);
+					if (myNode.getGroupCookie().equals(Cookie.INVALID_COOKIE)) {
+						Cookie newCookie = new Cookie(r.nextLong());
+						cookieMappings.put(myNode.getId(), newCookie);
+						myNode.setGroupCookie(newCookie);
+					} else {
+						cookieMappings.put(myNode.getId(), myNode.getGroupCookie());
+					}
 					logger.log("Starting new group (id=" + newGroupId + ")");
 				}
 			} else {

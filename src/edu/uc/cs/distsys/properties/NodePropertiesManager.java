@@ -25,7 +25,7 @@ public class NodePropertiesManager {
 			this.file = new File(name + ".properties");
 		}
 		if (file.exists()) {
-			logger.error("File '" + file.getName() + ".properties' already exists, I guess we can try to use it");
+			logger.error("File '" + file.getName() + "' already exists, I guess we can try to use it");
 		}
 		this.properties = new Properties();
 	}
@@ -99,14 +99,17 @@ public class NodePropertiesManager {
 	}
 	
 	private void updateInternalNode() {
-		if (this.properties.getProperty("GroupID") != null) {
-			this.node.setGroupId(Integer.parseInt(this.properties.getProperty("GroupID")));
+		String groupId = this.properties.getProperty("GroupID");
+		String leaderId = this.properties.getProperty("LeaderID");
+		String cookie = this.properties.getProperty("GroupCookie");
+		if (groupId != null) {
+			this.node.setGroupId(Integer.parseInt(groupId));
 		}
-		if (this.properties.getProperty("LeaderID") != null) {
-			this.node.setLeaderId(Integer.parseInt(this.properties.getProperty("LeaderID")));
+		if (leaderId != null) {
+			this.node.setLeaderId(Integer.parseInt(leaderId));
 		}
-		if (this.properties.getProperty("GroupCookie") != null) {
-			this.node.setGroupCookie(new Cookie(Long.parseLong(this.properties.getProperty("GroupCookie"))));
+		if (cookie != null) {
+			this.node.setGroupCookie(new Cookie(Long.parseLong(cookie)));
 		}
 	}
 

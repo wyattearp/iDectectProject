@@ -117,6 +117,8 @@ public class Node implements Serializable {
 	}
 	
 	public void setGroupCookie(Cookie groupCookie) {
+		//System.err.println("SETTING COOKIE " + groupCookie);
+		//try { throw new Exception(); } catch (Throwable t) { t.printStackTrace(); };
 		this.groupCookie = groupCookie;
 		this.persistProperties();
 	}

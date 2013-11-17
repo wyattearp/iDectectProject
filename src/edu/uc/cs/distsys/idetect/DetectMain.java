@@ -284,6 +284,10 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 			e.printStackTrace();
 			detector.stop();		
 		}
+		
+		//Debugging
+//		try { Thread.sleep(5000); } catch (Throwable t) {}
+//		detector.stop();
 	}
 
 }
