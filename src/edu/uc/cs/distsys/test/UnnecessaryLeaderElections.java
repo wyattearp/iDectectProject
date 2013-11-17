@@ -13,6 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import edu.uc.cs.distsys.ilead.ElectionMonitor;
+import edu.uc.cs.distsys.init.GroupJoinException;
 
 /***
  * Prerequisite: An additional node with ID < 12000 must be running on another host prior to start.
@@ -39,6 +40,8 @@ public class UnnecessaryLeaderElections extends LeaderTest implements ElectionMo
 		try {
 			this.electionData = startNodes(numLocalNodes, this, 5000);
 		} catch (UnknownHostException e) {
+			assertTrue(e.toString(), false);
+		} catch (GroupJoinException e) {
 			assertTrue(e.toString(), false);
 		}
 	}
