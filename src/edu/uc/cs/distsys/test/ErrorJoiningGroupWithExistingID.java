@@ -22,7 +22,7 @@ public class ErrorJoiningGroupWithExistingID {
 	@Before
 	public void setup() {
 		orig = new DetectMain(10 * 100, null);
-		impostor = new DetectMain(10 * 100, null);
+		impostor = new DetectMain("1000_impostor", 10 * 100, null);
 		try {
 			orig.start();
 		} catch (UnknownHostException e) {

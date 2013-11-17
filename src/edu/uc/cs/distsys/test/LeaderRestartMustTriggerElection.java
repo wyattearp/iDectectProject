@@ -71,9 +71,6 @@ public class LeaderRestartMustTriggerElection extends LeaderTest implements Elec
 		assertTrue(FAILED_MSG, this.electionCountdown.await(numSeconds, TimeUnit.SECONDS));
 		
 		System.out.println(PASSED_MSG);
-		
-		// for debugging
-		Thread.sleep(5000);
 	}
 	
 	@After
