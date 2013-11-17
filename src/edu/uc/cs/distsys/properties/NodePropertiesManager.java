@@ -16,10 +16,17 @@ public class NodePropertiesManager {
 	private Logger logger;
 	private Node node;
 	
-	public NodePropertiesManager(Node myNode, Logger logger) {
+	public NodePropertiesManager(String name, Node myNode, Logger logger) {
 		this.node = myNode;
 		this.logger = logger;
-		this.file = new File(this.node.getId() + ".properties");
+		if (name.equals("")) {
+			this.file = new File(this.node.getId() + ".properties");
+		} else {
+			this.file = new File(name + ".properties");
+		}
+		if (file.exists()) {
+			logger.error("File '" + name + ".properties' already exists, I guess we can try to use it");
+		}
 		this.properties = new Properties();
 	}
 

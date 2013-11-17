@@ -51,7 +51,7 @@ abstract public class MessageHandler<T extends Message> implements MessageListen
 		} catch (InterruptedException e) {
 			logger.log(clazz.getSimpleName() + " Message handler shutting down");
 		} catch (Throwable t) {
-			logger.error(clazz.getSimpleName() + " Uncaught exception: " + t);
+			logger.error("[" + clazz.getSimpleName() + ", " + Thread.currentThread().getId() + "] Uncaught exception: " + t);
 			t.printStackTrace();
 		}
 	}

@@ -16,8 +16,9 @@ final class HeartbeatThread implements Runnable, LeaderChangeListener {
 	
 	private static final int HEARTBEAT_PORT = 5000;
 	
-	private final int nodeId;
-	private int leaderId;
+	private Node myNode;
+//	private final int nodeId;
+//	private int leaderId;
 	
 	private Logger logger;
 	private Lock nodeLock;
@@ -26,12 +27,12 @@ final class HeartbeatThread implements Runnable, LeaderChangeListener {
 	
 	private int nextSeqNum;
 	
-	public HeartbeatThread(int nodeId, List<Node> failedNodes, Lock nodeLock, Logger logger) throws UnknownHostException {
-		this.nodeId = nodeId;
+	public HeartbeatThread(Node node, List<Node> failedNodes, Lock nodeLock, Logger logger) throws UnknownHostException {
+		this.myNode = node;
 		this.failedNodes = failedNodes;
 		this.nodeLock = nodeLock;
 		this.logger = logger;
-		this.heartbeatSender = new MulticastWrapper<Heartbeat>(HEARTBEAT_PORT, nodeId, new Heartbeat.HeartbeatFactory(), logger);
+		this.heartbeatSender = new MulticastWrapper<Heartbeat>(HEARTBEAT_PORT, myNode.getId(), new Heartbeat.HeartbeatFactory(), logger);
 		this.nextSeqNum = 0;
 	}
 	
@@ -53,13 +54,13 @@ final class HeartbeatThread implements Runnable, LeaderChangeListener {
 				//DEBUG
 			}
 			failedNodes.clear();
-			heartbeatSender.send(new Heartbeat(nodeId, leaderId, nextSeqNum++, curTime, failedNodes));
+			heartbeatSender.send(new Heartbeat(myNode, nextSeqNum++, curTime, failedNodes));
 //			failedNodes.clear();
 		} catch (MessageDroppedException mde) {
 			logger.debug("ERROR: " + mde);
 		} catch (IOException e) {
 			if (!Thread.currentThread().isInterrupted()) {
-				logger.error("ERROR(HeartbeatThread-" + this.nodeId + "):" + e);
+				logger.error("ERROR(HeartbeatThread-" + this.myNode.getId() + "):" + e);
 			}
 			//e.printStackTrace();
 		} finally {
@@ -75,7 +76,7 @@ final class HeartbeatThread implements Runnable, LeaderChangeListener {
 	public void onNewLeader(int leaderId) {
 		try {
 			this.nodeLock.lock();
-			this.leaderId = leaderId;
+			this.myNode.setLeaderId(leaderId);
 		} finally {
 			this.nodeLock.unlock();
 		}
@@ -85,7 +86,7 @@ final class HeartbeatThread implements Runnable, LeaderChangeListener {
 	public void onLeaderFailed() {
 		try {
 			this.nodeLock.lock();
-			this.leaderId = 0;
+			this.myNode.setLeaderId(0);
 		} finally {
 			this.nodeLock.unlock();
 		}
