@@ -30,15 +30,23 @@ public class GroupManager {
 			GroupManager.this.logger.log("Received group request from " + message.getSenderId());
 			if (GroupManager.this.myNode.isLeader()) {
 				GroupInvitation invite = null;
-				if (GroupManager.this.cookieMappings.containsKey(message.getGroupCookie().getValue())) {
-					invite = new GroupInvitation(GroupManager.this.myNode.getId(), message.getSenderId(), 0, Cookie.INVALID_COOKIE);
+				if (GroupManager.this.cookieMappings.containsKey(message.getSenderId())) {
+					if (GroupManager.this.cookieMappings.get(message.getSenderId()).equals(message.getGroupCookie())) {
+						GroupManager.this.logger.log("Node rejoining the group " + message.getSenderId());
+						invite = new GroupInvitation(GroupManager.this.myNode.getId(), message.getSenderId(), 0, message.getGroupCookie());
+					} else {
+						GroupManager.this.logger.log("Rejecting group request from " + message.getSenderId());
+						invite = new GroupInvitation(GroupManager.this.myNode.getId(), message.getSenderId(), 0, Cookie.INVALID_COOKIE);
+					}
 				} else {
 					Random r = new Random();
 					Cookie newCookie = new Cookie(r.nextLong());
-					while (GroupManager.this.cookieMappings.containsKey(newCookie)) {
-						newCookie = new Cookie(r.nextLong());
-					}
-					GroupManager.this.cookieMappings.put(newCookie, message.getSenderId());
+					//TODO: there's a chance we could generate duplicate cookies (oops)
+//					while (GroupManager.this.cookieMappings.containsKey(newCookie)) {
+//						newCookie = new Cookie(r.nextLong());
+//					}
+					GroupManager.this.cookieMappings.put(message.getSenderId(), newCookie);
+					GroupManager.this.logger.log("Inviting id=" + message.getSenderId() + " to our group");
 					invite = new GroupInvitation(GroupManager.this.myNode.getId(), message.getSenderId(), 
 							GroupManager.this.myNode.getGroupId(), newCookie);
 				}
@@ -73,7 +81,7 @@ public class GroupManager {
 				GroupManager.this.myInvitations.add(message);
 			} else {
 				if (!message.getCookie().equals(Cookie.INVALID_COOKIE)) {
-					GroupManager.this.cookieMappings.put(message.getCookie(), message.getSenderId());
+					GroupManager.this.cookieMappings.put(message.getSenderId(), message.getCookie());
 				}
 			}
 		}
@@ -84,7 +92,7 @@ public class GroupManager {
 	private static final long INVITATION_TIMEOUT_MS = 3000;
 	
 	private Node myNode;
-	private ConcurrentMap<Cookie, Integer> cookieMappings;
+	private ConcurrentMap<Integer, Cookie> cookieMappings;
 	
 	private Logger logger;
 	private CommsWrapper<GroupRequest> groupRequestor;
@@ -99,7 +107,7 @@ public class GroupManager {
 	public GroupManager(Node myNode, Logger logger) throws UnknownHostException {
 		this.myNode = myNode;
 		this.logger = logger;
-		this.cookieMappings = new ConcurrentHashMap<Cookie, Integer>();
+		this.cookieMappings = new ConcurrentHashMap<Integer, Cookie>();
 		this.myInvitations = new LinkedBlockingQueue<GroupInvitation>();
 		
 		this.groupRequestor = new MulticastWrapper<GroupRequest>(REQUEST_PORT, myNode.getId(), new GroupRequest.GroupRequestFactory(), logger);
@@ -155,7 +163,7 @@ public class GroupManager {
 					Random r = new Random(System.currentTimeMillis());
 					int newGroupId = r.nextInt(1000);
 					Cookie newCookie = new Cookie(r.nextLong());
-					cookieMappings.put(newCookie, myNode.getId());
+					cookieMappings.put(myNode.getId(), newCookie);
 					myNode.setGroupId(newGroupId);
 					myNode.setGroupCookie(newCookie);
 					logger.log("Starting new group (id=" + newGroupId + ")");
@@ -165,7 +173,7 @@ public class GroupManager {
 				if (invite.getCookie().equals(Cookie.INVALID_COOKIE)) {
 					throw new GroupJoinException("Failed to join group " + invite.getGroupId() + " (node conflict detected)");
 				}
-				cookieMappings.put(invite.getCookie(), myNode.getId());
+				cookieMappings.put(myNode.getId(), invite.getCookie());
 				myNode.setGroupCookie(invite.getCookie());
 				myNode.setGroupId(invite.getGroupId());
 				logger.log("Joined group " + invite.getGroupId() + ", my cookie is " + invite.getCookie());

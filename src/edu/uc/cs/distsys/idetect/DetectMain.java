@@ -80,16 +80,15 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 	private Node myNode;
 	private HeartbeatThread hbThread;
 	private HeartbeatListener hbListener;
-//	private NodePropertiesManager nodeProperties;
 	private GroupManager groupManager;
 
-	public DetectMain(int nodeId, List<Integer> peers) {
+	public DetectMain(String nodeName, int nodeId, List<Integer> peers) {
 		this.logger = new LogHelper(nodeId, System.out, System.err, null);
 		this.nodes = new HashMap<Integer, Node>();
 		this.failedNodes = new LinkedList<Node>();
 		this.heartbeatLock = new ReentrantLock();
 		// load up stored properties if available
-		this.myNode = new Node(nodeId);
+		this.myNode = new Node(nodeName, nodeId);
 		this.scheduledExecutor = new ScheduledThreadPoolExecutor(1);
 		this.statusViewThread = new NodeStatusViewThread(this.myNode.getId());
 		this.uiThread = new Thread(statusViewThread);
@@ -100,16 +99,20 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 			}
 		}
 	}
+	
+	public DetectMain(int nodeId, List<Integer> peers) {
+		this("", nodeId, peers);
+	}
 
-	public void start() throws UnknownHostException, GroupJoinException {
-		this.uiThread.start();
-		
+	public void start() throws UnknownHostException, GroupJoinException {		
 		// Join a group
 		this.groupManager = new GroupManager(myNode, logger);
 		this.groupManager.locateAndJoinGroup();
-		
+
+		this.uiThread.start();
+
 		this.hbListener = new HeartbeatListener(logger);
-		this.hbThread = new HeartbeatThread(this.myNode.getId(), failedNodes, heartbeatLock, logger); 
+		this.hbThread = new HeartbeatThread(this.myNode, failedNodes, heartbeatLock, logger); 
 		this.detectorThread = Executors.defaultThreadFactory().newThread(
 				new NotifyThread<Heartbeat>(this.myNode.getId(), hbThread.getCommsWrapper(), hbListener, Heartbeat.class, logger));
 		this.detectorThread.start();
@@ -126,13 +129,13 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 	}
 	
 	public void stop() {
-		this.groupManager.shutdown();
+		if (this.groupManager != null) this.groupManager.shutdown();
 		this.scheduledExecutor.shutdownNow();
 		if (this.hbThread != null) this.hbThread.getCommsWrapper().close();
-		this.detectorThread.interrupt();
-		this.hbListener.stop();
+		if (this.detectorThread != null) this.detectorThread.interrupt();
+		if (this.hbListener != null) this.hbListener.stop();
 		this.uiThread.interrupt();
-		this.electionMgr.stop();
+		if (this.electionMgr != null) this.electionMgr.stop();
 		this.logger.log("Detector shutting down");
 		this.logger.close();
 	}
@@ -186,9 +189,9 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 		return this.myNode.getGroupId();
 	}
 	
-	public void setGroupId(int groupId) {
-		this.myNode.setGroupId(groupId);
-	}
+//	public void setGroupId(int groupId) {
+//		this.myNode.setGroupId(groupId);
+//	}
 	
 	public int getId() {
 		return this.myNode.getId();
@@ -235,7 +238,8 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 	
 	public static void main(String[] args) {
 		int node = 0;
-		int group = 0;
+//		int group = 0;
+		String name = "";
 		if (args.length < 1) {
 			//System.err.println("Usage: " + args[0] + "<port#> [peer#1] ... [peer#N]");
 			// DEBUGGING
@@ -246,23 +250,24 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 				// first arg is node id
 				node = Integer.parseInt(args[0]);
 			}
+//			if (args.length >= 2) {
+//				// second arg is group id
+//				group = Integer.parseInt(args[1]);
+//			}
 			if (args.length >= 2) {
-				// second arg is group id
-				group = Integer.parseInt(args[1]);
+				// second arg is the node name
+				name = args[1];
 			}
 		}
-		
-		// DEBUG FOR TESTING!!!
-		//System.getProperties().setProperty("packetloss", "20");
-		
+				
 		List<Integer> peers = new LinkedList<Integer>();
-		for (int i = 1; i < args.length; i++) {
+		for (int i = 2; i < args.length; i++) {
 			peers.add(Integer.parseInt(args[i]));
 		}
 			
-		final DetectMain detector = new DetectMain(node, peers);
+		final DetectMain detector = new DetectMain(name, node, peers);
 		try {
-			detector.setGroupId(group);
+			//detector.setGroupId(group);
 			Runtime.getRuntime().addShutdownHook(new Thread() {
 				@Override
 				public void run() {

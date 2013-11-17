@@ -31,23 +31,28 @@ public class Node implements Serializable {
 	private int leaderId;
 	private int groupId;
 	private Cookie groupCookie;
-	private NodePropertiesManager properties;
+	transient private NodePropertiesManager properties;
 
 	public static Node createFailedNode(int id, NodeState state, int seqNum) {
-		return new Node(id, seqNum, 0, 0, state);
+		return new Node(null, id, seqNum, 0, 0, state);
 	}
 
+	public Node(String name, int id) {
+		this(name, id, -1, 0, 0, NodeState.UNKNOWN);
+	}
+	
 	public Node(int id) {
-		this(id, -1, 0, 0, NodeState.UNKNOWN);
+		this(null, id, -1, 0, 0, NodeState.UNKNOWN);
 	}
 
 	public Node(Heartbeat hb) {
-		this(hb.getNodeId(), hb.getSeqNum(), System.currentTimeMillis(), hb
+		this(null, hb.getNodeId(), hb.getSeqNum(), System.currentTimeMillis(), hb
 				.getTimestamp(), NodeState.ONLINE);
 		this.setLeaderId(hb.getLeaderId());
+		this.setGroupId(hb.getNode().getGroupId());
 	}
 
-	private Node(int id, int seqNum, long checkinRecv, long checkinSent,
+	private Node(String name, int id, int seqNum, long checkinRecv, long checkinSent,
 			NodeState initialState) {
 		this.id = id;
 		this.seqHighWaterMark = seqNum;
@@ -59,9 +64,11 @@ public class Node implements Serializable {
 		
 		// now, load up the node if we can
 		LogHelper logger = new LogHelper(id, System.out, System.err, null);
-		this.properties = new NodePropertiesManager(this,logger);
-		this.properties.load();
-		this.persistProperties();
+		if (name != null) {
+			this.properties = new NodePropertiesManager(name,this,logger);
+			this.properties.load();
+			this.persistProperties();
+		}
 	}
 
 	public int getId() {
@@ -255,12 +262,13 @@ public class Node implements Serializable {
 	public void setGroupId(int groupId) {
 		this.groupId = groupId;
 		this.persistProperties();
-		
 	}
 	
 	private void persistProperties() {
-		this.properties.setProperties(this);
-		this.properties.save();
+		if (this.properties != null) {
+			this.properties.setProperties(this);
+			this.properties.save();
+		}
 	}
 	
 	public void printNode() {
