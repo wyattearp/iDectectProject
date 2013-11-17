@@ -11,6 +11,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import edu.uc.cs.distsys.idetect.DetectMain;
 import edu.uc.cs.distsys.ilead.ElectionMonitor;
 import edu.uc.cs.distsys.init.GroupJoinException;
 
@@ -22,6 +23,7 @@ public class LeaderRestartMustTriggerElection extends LeaderTest implements Elec
 	final static String FAILED_MSG = "Req A10 Failed";
 	ConcurrentMap<Integer, ElectionInfo> electionData;
 	CountDownLatch electionCountdown;
+	DetectMain restartLeader;
 	
 	@Before
 	public void setup() {
@@ -57,7 +59,8 @@ public class LeaderRestartMustTriggerElection extends LeaderTest implements Elec
 		
 		// restart the previous leader
 		try {
-			this.electionData.get(currentLeaderId).node.start();
+			restartLeader = new DetectMain(currentLeaderId, null);
+			restartLeader.start();
 		} catch (UnknownHostException e) {
 			assertTrue(e.toString(), false);
 		} catch (GroupJoinException e) {
@@ -76,6 +79,7 @@ public class LeaderRestartMustTriggerElection extends LeaderTest implements Elec
 	@After
 	public void tearDown() {
 		shutdownNodes(electionData);
+		restartLeader.stop();
 	}
 	
 	@Override
