@@ -10,10 +10,11 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 public abstract class Message implements Serializable {
-
+	
 	private static final long serialVersionUID = 6302040616367020125L;
 
 	private final int senderId;
+	private int sessionId;
 	
 	public Message(int senderId) {
 		this.senderId = senderId;
@@ -21,6 +22,14 @@ public abstract class Message implements Serializable {
 
 	public int getSenderId() {
 		return senderId;
+	}
+	
+	public int getSessionId() {
+		return sessionId;
+	}
+	
+	public void setSessionId(int sessionId) {
+		this.sessionId = sessionId;
 	}
 	
 	public byte[] serialize() {

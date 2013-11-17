@@ -30,6 +30,8 @@ public class MulticastWrapper<T extends Message> implements CommsWrapper<T> {
 
 	private InetAddress mcastGroup;
 	private int port;
+	
+	private int sessionId;	// used to make sure we don't try to receive messages from ourselves
 
 	private MulticastSocket recvSocket;
 	private Logger logger;
@@ -46,6 +48,7 @@ public class MulticastWrapper<T extends Message> implements CommsWrapper<T> {
 		this.packetLoss = Integer.parseInt(System.getProperty("packetloss", "0"));
 		this.rngSeed = System.currentTimeMillis();
 		this.rng = new Random(this.rngSeed);
+		this.sessionId = rng.nextInt();
 		
 		logger.debug(" DEBUG: pktLoss = " + this.packetLoss);
 	}
@@ -70,6 +73,7 @@ public class MulticastWrapper<T extends Message> implements CommsWrapper<T> {
 		this.outboundSent++;
 		MulticastSocket socket = new MulticastSocket();
 		try {
+			msg.setSessionId(sessionId);
 			byte[] rawHb = msg.serialize();
 			DatagramPacket packet = new DatagramPacket(rawHb, rawHb.length, this.mcastGroup, port);
 			socket.send(packet);
@@ -97,7 +101,7 @@ public class MulticastWrapper<T extends Message> implements CommsWrapper<T> {
 			DatagramPacket packet = new DatagramPacket(buf, buf.length);
 			this.recvSocket.receive(packet);
 			msg = this.messageFactory.create(buf);
-			if (msg != null && msg.getSenderId() == this.myId)
+			if (msg != null && msg.getSenderId() == this.myId && msg.getSessionId() == this.sessionId)
 				msg = null;
 		}
 		if (shouldDropPacket()) {

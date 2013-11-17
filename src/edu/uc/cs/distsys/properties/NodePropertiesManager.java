@@ -25,7 +25,7 @@ public class NodePropertiesManager {
 			this.file = new File(name + ".properties");
 		}
 		if (file.exists()) {
-			logger.error("File '" + name + ".properties' already exists, I guess we can try to use it");
+			logger.error("File '" + file.getName() + ".properties' already exists, I guess we can try to use it");
 		}
 		this.properties = new Properties();
 	}
