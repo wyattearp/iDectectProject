@@ -43,11 +43,37 @@ Lab 3 Requirements
 As Mugscript’s data center operations become more complex, managing its services places a few new requirements on iDetect/iLeadAs Mugscript’s data center operations become more complex, managing its services places a few new requirements on iDetect/iLead.
 Functional Requirements:
 
-A7. Processes must use a deterministic identifier (e.g., meaningful name or number assigned to that process)
+<s>A7. Processes must use a deterministic identifier (e.g., meaningful name or number assigned to that process)</s> - done
 
-A8. A process must report an error if it attempts to join a group that already has a correct process sharing the same identifier
+<s>A8. A process must report an error if it attempts to join a group that already has a correct process sharing the same identifier</s> - done
 
-A9. If a process fails and restarts, it must be able to rejoin the group using the same identifier, but the fail/restart must be reported even if no other process detected the failure
+<s>A9. If a process fails and restarts, it must be able to rejoin the group using the same identifier, but the fail/restart must be reported even if no other process detected the failure</s> - done
 
-A10. If a leader process fails and restarts, an election must take place
+<s>A10. If a leader process fails and restarts, an election must take place</s> - done
+
+Lab 4 Requirements
+==================
+A1. Each process in the iTolerate system shall have a definition for the number of processes operating in the system configuration
+
+     –“N” necessary to determine quorum quantities
+     – does not fluctuate, even with network partitions, for our exercise
+
+A2. iTolerate shall maintain consensus functionality so long as strictly more than 2/3 of the processes in the system are correct
+
+     – I.e., int(2*N/3+1) or greater must be operating as designed, where N is the total number of processes in the system
+     – This functionality must be maintained even if incorrect processes are sending erroneous and misleading messages 
+
+A3. In the event of a network partition that leaves strictly more than 2/3 of the correct processes in the system in a single partition, the processes in that partition shall maintain consensus value functionality
+
+A4. In the event of a network partition, all processes in a partition that does not contain strictly more than 2/3 of the correct processes in the system shall signal an inability to carry out consensus operations
+
+    – This will include ether the “minority” side of a partition, or a “majority” side that contains enough Byzantine-failed processes to leave 2/3*N or fewer correct processes
+
+A5. An incorrect leader shall be detected by correct processes within 1 minute and a new election held to elect a correct process
+
+     – Need a “consensus value” – a value that the leader periodically announces – to determine whether the leader is acting properly
+          - We already have a value (N) if you just want to use that, or make up your own
+     – You do not need to defend against the “framed process” scenario that we discussed in class
+
+Verify the requirements; this will necessitate the ability to simulate Byzantine fault behavior with a number of processes, as well as a network partition
 
