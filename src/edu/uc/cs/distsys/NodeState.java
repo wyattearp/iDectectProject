@@ -4,5 +4,6 @@ public enum NodeState {
 	UNKNOWN,
 	ONLINE,
 	SUSPECT,
-	OFFLINE
+	OFFLINE,
+	INCOHERENT
 }

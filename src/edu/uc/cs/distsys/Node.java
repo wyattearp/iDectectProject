@@ -31,6 +31,7 @@ public class Node implements Serializable {
 	private int leaderId;
 	private int groupId;
 	private Cookie groupCookie;
+	private int numProcOperating;
 	transient private NodePropertiesManager properties;
 
 	public static Node createFailedNode(int id, NodeState state, int seqNum) {
@@ -178,7 +179,9 @@ public class Node implements Serializable {
 			   " suspectTime: " + suspectTime + 
 			   " seqHighWater: " + seqHighWaterMark +
 			   " state: " + state +
-			   " leader: " + leaderId + "}";
+			   " leader: " + leaderId +
+			   " numProcOperating: " + numProcOperating +
+			   "}";
 	}
 
 	@Override
@@ -266,6 +269,14 @@ public class Node implements Serializable {
 		this.persistProperties();
 	}
 	
+	public int getNumProcOperating() {
+		return numProcOperating;
+	}
+
+	public void setNumProcOperating(int numProcOperating) {
+		this.numProcOperating = numProcOperating;
+	}
+
 	private void persistProperties() {
 		if (this.properties != null) {
 			this.properties.setProperties(this);
@@ -283,6 +294,7 @@ public class Node implements Serializable {
 		System.out.println("\tState: " + this.state);
 		System.out.println("\tLeader ID: " + this.leaderId);
 		System.out.println("\tGroup ID: " + this.groupId);
+		System.out.println("\tNumber of Procs: " + this.numProcOperating);
 		
 	}
 
