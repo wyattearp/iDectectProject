@@ -92,6 +92,7 @@ public class NodePropertiesManager {
 		this.properties.setProperty("GroupID", Integer.toString(node.getGroupId()));
 		this.properties.setProperty("LeaderID", Integer.toString(node.getLeaderId()));
 		this.properties.setProperty("GroupCookie", node.getGroupCookie().toString());
+		this.properties.setProperty("NumProcOperating", Integer.toString(node.getNumProcOperating()));
 	}
 	
 	public Properties getProperties() {
@@ -102,6 +103,7 @@ public class NodePropertiesManager {
 		String groupId = this.properties.getProperty("GroupID");
 		String leaderId = this.properties.getProperty("LeaderID");
 		String cookie = this.properties.getProperty("GroupCookie");
+		String numProcOp = this.properties.getProperty("NumProcOperating");
 		if (groupId != null) {
 			this.node.setGroupId(Integer.parseInt(groupId));
 		}
@@ -110,6 +112,9 @@ public class NodePropertiesManager {
 		}
 		if (cookie != null) {
 			this.node.setGroupCookie(new Cookie(Long.parseLong(cookie)));
+		}
+		if (numProcOp != null) {
+			this.node.setNumProcOperating(Integer.parseInt(numProcOp));
 		}
 	}
 
