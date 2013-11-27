@@ -103,6 +103,26 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 	public DetectMain(int nodeId, List<Integer> peers) {
 		this("", nodeId, peers);
 	}
+	
+	public DetectMain(String nodeName, int nodeId, List<Integer> peers, int numProcOperating) {
+		// TODO: this should probably be refactored to work with the above constructors
+		this.logger = new LogHelper(nodeId, System.out, System.err, null);
+		this.nodes = new HashMap<Integer, Node>();
+		this.failedNodes = new LinkedList<Node>();
+		this.heartbeatLock = new ReentrantLock();
+		// load up stored properties if available
+		this.myNode = new Node(nodeName, nodeId);
+		this.myNode.setNumProcOperating(numProcOperating);
+		this.scheduledExecutor = new ScheduledThreadPoolExecutor(1);
+		this.statusViewThread = new NodeStatusViewThread(this.myNode.getId());
+		this.uiThread = new Thread(statusViewThread);
+		
+		if (peers != null) {
+			for (int peer : peers) {
+				this.nodes.put(peer, new Node(peer));
+			}
+		}
+	}
 
 	public void start() throws UnknownHostException, GroupJoinException {		
 		// Join a group
@@ -240,6 +260,7 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 		int node = 0;
 //		int group = 0;
 		String name = "";
+		int numProcOperating = 0;
 		if (args.length < 1) {
 			//System.err.println("Usage: " + args[0] + "<port#> [peer#1] ... [peer#N]");
 			// DEBUGGING
@@ -258,14 +279,22 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 				// second arg is the node name
 				name = args[1];
 			}
+			if (args.length >= 3) {
+				// third arg is the number of processes
+				numProcOperating = Integer.parseInt(args[2]);
+			}
 		}
-				
+		// TODO: does this peer thing even work?? - WN
 		List<Integer> peers = new LinkedList<Integer>();
-		for (int i = 2; i < args.length; i++) {
+		for (int i = 3; i < args.length; i++) {
 			peers.add(Integer.parseInt(args[i]));
 		}
-			
-		final DetectMain detector = new DetectMain(name, node, peers);
+		final DetectMain detector;
+		if (args.length >= 3) {
+			detector = new DetectMain(name, node, peers,numProcOperating);
+		} else {
+			detector = new DetectMain(name, node, peers);
+		}
 		try {
 			//detector.setGroupId(group);
 			Runtime.getRuntime().addShutdownHook(new Thread() {
