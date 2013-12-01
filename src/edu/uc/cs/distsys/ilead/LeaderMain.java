@@ -11,6 +11,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import edu.uc.cs.distsys.Logger;
+import edu.uc.cs.distsys.Node;
 import edu.uc.cs.distsys.comms.MessageDroppedException;
 import edu.uc.cs.distsys.comms.MessageHandler;
 import edu.uc.cs.distsys.comms.MulticastWrapper;
@@ -148,6 +149,17 @@ logger.error("LEADER FAILED!");
 		if (! electionInProgress) {
 			startNewElection();
 		}
+	}
+	
+	@Override
+	public void includeNodeInElections(Node healedNode) {
+		
+	}
+	
+	@Override
+	public void excludeNodeFromElections(Node badNode) {
+		// TODO Auto-generated method stub
+		
 	}
 	
 	private class ElectionListener extends MessageHandler<ElectionMessage> {
