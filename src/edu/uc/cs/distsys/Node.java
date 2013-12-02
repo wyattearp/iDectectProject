@@ -202,6 +202,9 @@ public class Node implements Serializable {
 					"<td>Node ID</td>" +
 					"<td>" + id + "</td>" +
 				"</tr><tr>" +
+					"<td>Node State</td>" +
+					"<td>" + state + "</td>" +
+				"</tr><tr>" +
 					"<td>Leader ID</td>" +
 					"<td>" + leaderString + "</td>" +
 				"</tr><tr>" +
