@@ -48,10 +48,8 @@ final class HeartbeatThread implements Runnable, LeaderChangeListener {
 				msg += "}";
 				logger.debug(msg);
 			} else {
-				//DEBUG:
 				logger.debug("Sending heartbeat with " + 
 						failedNodes.size() + " failed nodes");
-				//DEBUG
 			}
 			failedNodes.clear();
 			heartbeatSender.send(new Heartbeat(myNode, nextSeqNum++, curTime, failedNodes));
@@ -62,7 +60,6 @@ final class HeartbeatThread implements Runnable, LeaderChangeListener {
 			if (!Thread.currentThread().isInterrupted()) {
 				logger.error("ERROR(HeartbeatThread-" + this.myNode.getId() + "):" + e);
 			}
-			//e.printStackTrace();
 		} finally {
 			nodeLock.unlock();
 		}
