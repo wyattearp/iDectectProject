@@ -90,7 +90,7 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 		// load up stored properties if available
 		this.myNode = new Node(nodeName, nodeId);
 		this.scheduledExecutor = new ScheduledThreadPoolExecutor(1);
-		this.statusViewThread = new NodeStatusViewThread(this.myNode.getId());
+		this.statusViewThread = new NodeStatusViewThread(this.myNode);
 		this.uiThread = new Thread(statusViewThread);
 		
 		if (peers != null) {
@@ -114,7 +114,7 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 		this.myNode = new Node(nodeName, nodeId);
 		this.myNode.setNumProcOperating(numProcOperating);
 		this.scheduledExecutor = new ScheduledThreadPoolExecutor(1);
-		this.statusViewThread = new NodeStatusViewThread(this.myNode.getId());
+		this.statusViewThread = new NodeStatusViewThread(this.myNode);
 		this.uiThread = new Thread(statusViewThread);
 		
 		if (peers != null) {

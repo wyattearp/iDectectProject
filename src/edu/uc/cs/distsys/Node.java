@@ -183,6 +183,35 @@ public class Node implements Serializable {
 			   " numProcOperating: " + numProcOperating +
 			   "}";
 	}
+	
+	public String toHTMLString() {
+		String leaderString = "";
+		if (id == leaderId) {
+			leaderString = "This Node";
+		} else {
+			leaderString = Integer.toString(leaderId);
+		}
+		return 	"<html>" +
+				"<div><table>" +
+				"<tr>" +
+					"<td>Node ID</td>" +
+					"<td>" + id + "</td>" +
+				"</tr><tr>" +
+					"<td>Leader ID</td>" +
+					"<td>" + leaderString + "</td>" +
+				"</tr><tr>" +
+					"<td>Group ID</td>" +
+					"<td>" + groupId + "</td>" +
+				"</tr><tr>" +
+					"<td>Group Cookie</td>" +
+					"<td>" + groupCookie + "</td>" +
+				"</tr><tr>" +
+					"<td>Number of Processes Operating</td>" +
+					"<td>" + numProcOperating + "</td>" +
+				"</tr>" +
+				"</table></div>" +
+				"<html>";
+	}
 
 	@Override
 	public Node clone() {

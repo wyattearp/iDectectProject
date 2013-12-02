@@ -3,6 +3,7 @@ package edu.uc.cs.distsys.ui;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -13,6 +14,7 @@ public class NodeStatusView extends JPanel {
 	private JTable viewTable;
 	private JScrollPane viewScrollPane;
 	private NodeTableModel nodeTable;
+	private JLabel nodePropertiesLabel;
 	private static final int tableWidth = 800;
 	private static final int tableHeight = 100;
 
@@ -25,7 +27,8 @@ public class NodeStatusView extends JPanel {
 	}
 
 	public NodeStatusView() {
-		super(new GridLayout(1,0));
+		super(new GridLayout(2,1));
+		nodePropertiesLabel = new JLabel();
 		nodeTable = new NodeTableModel();
 		viewTable = new JTable(this.nodeTable);
 		viewTable.setPreferredScrollableViewportSize(new Dimension(tableWidth,tableHeight));
@@ -34,6 +37,7 @@ public class NodeStatusView extends JPanel {
 		
 		// attach the table to the UI pane
 		viewScrollPane = new JScrollPane(viewTable);
+		this.add(nodePropertiesLabel);
 		this.add(viewScrollPane);
 	}
 
@@ -51,6 +55,10 @@ public class NodeStatusView extends JPanel {
 
 	public void setViewScrollPane(JScrollPane viewScrollPane) {
 		this.viewScrollPane = viewScrollPane;
+	}
+	
+	public JLabel getNodePropertiesLabel() {
+		return nodePropertiesLabel;
 	}
 
 	public static long getSerialversionuid() {
