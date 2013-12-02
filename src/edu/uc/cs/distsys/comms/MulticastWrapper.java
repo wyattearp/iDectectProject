@@ -8,8 +8,11 @@ import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import edu.uc.cs.distsys.Logger;
+import edu.uc.cs.distsys.Node;
 
 public class MulticastWrapper<T extends Message> implements CommsWrapper<T> {
 
@@ -25,12 +28,12 @@ public class MulticastWrapper<T extends Message> implements CommsWrapper<T> {
 	private long inboundDropped;
 	private long inboundReceived;
 	
-	private final int myId;
 	private final MessageFactory<T> messageFactory;
 
 	private InetAddress mcastGroup;
 	private int port;
 	
+	private ConcurrentMap<Integer, Integer> excludedNodes;
 	private int sessionId;	// used to make sure we don't try to receive messages from ourselves
 
 	private MulticastSocket recvSocket;
@@ -43,12 +46,15 @@ public class MulticastWrapper<T extends Message> implements CommsWrapper<T> {
 		this.logger = logger;
 		this.mcastGroup = InetAddress.getByName(ip);
 		this.port = port;
-		this.myId = myId;
 		this.messageFactory = factory;
 		this.packetLoss = Integer.parseInt(System.getProperty("packetloss", "0"));
 		this.rngSeed = System.currentTimeMillis();
 		this.rng = new Random(this.rngSeed);
 		this.sessionId = rng.nextInt();
+		this.excludedNodes = new ConcurrentHashMap<Integer, Integer>();
+		
+		// Add ourselves to the list of excluded nodes
+		this.excludedNodes.put(myId, sessionId);
 		
 		logger.debug(" DEBUG: pktLoss = " + this.packetLoss);
 	}
@@ -100,9 +106,10 @@ public class MulticastWrapper<T extends Message> implements CommsWrapper<T> {
 			byte[] buf = new byte[1500];
 			DatagramPacket packet = new DatagramPacket(buf, buf.length);
 			this.recvSocket.receive(packet);
-			msg = this.messageFactory.create(buf);
-			if (msg != null && msg.getSenderId() == this.myId && msg.getSessionId() == this.sessionId)
-				msg = null;
+			msg = getFilteredMessage(this.messageFactory.create(buf));
+//			msg = this.messageFactory.create(buf);
+//			if (msg != null && msg.getSenderId() == this.myId && msg.getSessionId() == this.sessionId)
+//				msg = null;
 		}
 		if (shouldDropPacket()) {
 			this.inboundDropped++;
@@ -117,6 +124,31 @@ public class MulticastWrapper<T extends Message> implements CommsWrapper<T> {
 		if (this.recvSocket != null) {
 			this.recvSocket.close();
 		}
+	}
+	
+	@Override
+	public void includeNode(Node goodNode) {
+		this.excludedNodes.remove(goodNode.getId());
+	}
+	
+	@Override
+	public void excludeNode(Node badNode) {
+		this.excludedNodes.put(badNode.getId(), 0);
+	}
+	
+	/**
+	 * Checks the given message to see if it is from an "excluded" node.
+	 * @return the message msg, or null if msg is from an excluded node
+	 */
+	private T getFilteredMessage(T msg) {
+		T outMsg = msg;
+		if (this.excludedNodes.containsKey(msg.getSenderId())) {
+			int session = this.excludedNodes.get(msg.getSenderId());
+			if (session == 0 || session == msg.getSessionId()) {
+				outMsg = null;
+			}
+		}
+		return outMsg;
 	}
 	
 	public void printIoStatistics() {

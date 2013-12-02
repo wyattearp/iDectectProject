@@ -128,18 +128,23 @@ public class Node implements Serializable {
 		return this.state == NodeState.OFFLINE;
 	}
 	
-	public boolean updateStatus(Heartbeat hb) {
-		return this.updateStatus(hb, System.currentTimeMillis());
+	public boolean updateStatus(Heartbeat hb, int expectedNumSysProcs) {
+		return this.updateStatus(hb, expectedNumSysProcs, System.currentTimeMillis());
 	}
 
-	public boolean updateStatus(Heartbeat hb, long recvTime) {
+	public boolean updateStatus(Heartbeat hb, int expectedNumSysProcs, long recvTime) {
 		boolean updated = false;
 		if (hb.getSeqNum() > this.seqHighWaterMark) {
 			this.leaderId = hb.getLeaderId();
 			this.lastCheckinRcv = recvTime;
 			this.lastCheckinSent = hb.getTimestamp();
 			this.seqHighWaterMark = hb.getSeqNum();
-			this.state = NodeState.ONLINE;
+			this.numProcOperating = hb.getNode().getNumProcOperating();
+			if (expectedNumSysProcs == hb.getNode().getNumProcOperating()) {
+				this.state = NodeState.ONLINE;
+			} else {
+				this.state = NodeState.INCOHERENT;
+			}
 			updated = true;
 		}
 		return updated;

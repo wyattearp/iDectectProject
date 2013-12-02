@@ -44,13 +44,25 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 					DetectMain.this.statusViewThread.addMonitoredNode(n);
 				} else {
 					logger.debug("Received heartbeat from node " + status.getNodeId());
-					if (DetectMain.this.nodes.get(status.getNodeId()).updateStatus(status)) {
-						// TODO: check leader id of other node? 
-						if (DetectMain.this.myNode.getLeaderId() == DetectMain.this.myNode.getId() && DetectMain.this.myNode.getLeaderId() > status.getLeaderId())
-							DetectMain.this.electionMgr.startNewElection();
-						// Go through all reported failed nodes and update local state if necessary
-						for (Node failNode : status.getFailedNodes()) {
-							DetectMain.this.verifyFailedNode(failNode);
+					Node reportingNode = DetectMain.this.nodes.get(status.getNodeId()); 
+					if (reportingNode.updateStatus(status, DetectMain.this.myNode.getNumProcOperating())) {
+						
+						//
+						// TODO: Ugh, this is becoming unwieldy, consider adding onNodeStateChange...
+						//
+						
+						// make sure node is coherent
+						if (reportingNode.getState().equals(NodeState.INCOHERENT)) {
+							DetectMain.this.onIncoherentNode(reportingNode);
+						} else {
+							// TODO: check leader id of other node? 
+							if (DetectMain.this.myNode.getLeaderId() == DetectMain.this.myNode.getId() && 
+									DetectMain.this.myNode.getLeaderId() > status.getLeaderId())
+								DetectMain.this.electionMgr.startNewElection();
+							// Go through all reported failed nodes and update local state if necessary
+							for (Node failNode : status.getFailedNodes()) {
+								DetectMain.this.verifyFailedNode(failNode);
+							}
 						}
 					} else {
 						logger.error("Warning - Received out-of-order heartbeat from node " + status.getNodeId());
@@ -222,6 +234,11 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 	 */
 	public int getNumGroupNodes() {
 		return this.nodes.size() + 1;
+	}
+
+	private void onIncoherentNode(Node badNode) {
+		this.logger.log("Node " + badNode.getId() + " is not coherent!");
+		this.electionMgr.excludeNodeFromElections(badNode);
 	}
 	
 	private void verifyFailedNode(Node node) {
