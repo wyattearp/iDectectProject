@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -118,23 +117,8 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 	}
 	
 	public DetectMain(String nodeName, int nodeId, List<Integer> peers, int numProcOperating) {
-		// TODO: this should probably be refactored to work with the above constructors
-		this.logger = new LogHelper(nodeId, System.out, System.err, null);
-		this.nodes = new HashMap<Integer, Node>();
-		this.failedNodes = new LinkedList<Node>();
-		this.heartbeatLock = new ReentrantLock();
-		// load up stored properties if available
-		this.myNode = new Node(nodeName, nodeId);
+		this(nodeName, nodeId, peers);
 		this.myNode.setNumProcOperating(numProcOperating);
-		this.scheduledExecutor = new ScheduledThreadPoolExecutor(1);
-		this.statusViewThread = new NodeStatusViewThread(this.myNode);
-		this.uiThread = new Thread(statusViewThread);
-		
-		if (peers != null) {
-			for (int peer : peers) {
-				this.nodes.put(peer, new Node(peer));
-			}
-		}
 	}
 
 	public void start() throws UnknownHostException, GroupJoinException {		
@@ -260,14 +244,29 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 				throw new IllegalStateException("Node has entered unknown state: " + n);
 		}
 		// Check if we are capable of reaching consensus
-		int maxFailedNodes = myNode.getNumProcOperating() - (2 * myNode.getNumProcOperating() / 3 + 1);
-		if (this.incoherentNodes.size() > maxFailedNodes && this.consensusPossible) {
+		int minCorrectNodes = 2 * myNode.getNumProcOperating() / 3 + 1;
+		int numCorrectNodes = 0;
+		for (Node node : this.nodes.values()) {
+			if (node.equals(NodeState.ONLINE)) {
+				numCorrectNodes++;
+			}
+		}
+		if (numCorrectNodes < minCorrectNodes) {
 			this.consensusPossible = false;
 			this.logger.log("Consensus is no longer possible");
 		} else if (! this.consensusPossible) {
 			this.consensusPossible = true;
 			this.logger.log("Consensus is now possible");
 		}
+
+//		int maxFailedNodes = myNode.getNumProcOperating() - (2 * myNode.getNumProcOperating() / 3 + 1);
+//		if (this.incoherentNodes.size() > maxFailedNodes && this.consensusPossible) {
+//			this.consensusPossible = false;
+//			this.logger.log("Consensus is no longer possible");
+//		} else if (! this.consensusPossible) {
+//			this.consensusPossible = true;
+//			this.logger.log("Consensus is now possible");
+//		}
 	}
 	
 	private void verifyFailedNode(Node node) {
@@ -328,6 +327,10 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 			if (args.length >= 3) {
 				// third arg is the number of processes
 				numProcOperating = Integer.parseInt(args[2]);
+			} 
+			// DEBUG
+			else {
+				numProcOperating = 9;
 			}
 		}
 		// TODO: does this peer thing even work?? - WN
