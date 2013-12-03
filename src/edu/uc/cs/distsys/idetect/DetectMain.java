@@ -269,6 +269,32 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 //		}
 	}
 	
+	/**
+	 * @return Number of nodes with the same group ID as this node, including self
+	 */
+	public int getNumSameGroupNodes() {
+		int numSameGroup = 0;
+		for (Node curNode : this.nodes.values()) {
+			if (curNode.getGroupId() == this.myNode.getGroupId()) {
+				numSameGroup++;
+			}
+		}
+		return numSameGroup + 1;
+	}
+	
+	/**
+	 * @return Number of nodes with the same group ID as this node which are currently in the Online state, including self
+	 */
+	public int getNumOnlineSameGroupNodes() {
+		int numOnlineSameGroupNodes = 0;
+		for (Node curNode : this.nodes.values()) {
+			if (curNode.getGroupId() == this.myNode.getGroupId() && curNode.getState().equals(NodeState.ONLINE)) {
+				numOnlineSameGroupNodes++;
+			}
+		}
+		return numOnlineSameGroupNodes + 1;
+	}
+	
 	private void verifyFailedNode(Node node) {
 		if (node.getId() == this.myNode.getId())
 			return;
