@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -44,13 +45,21 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 					DetectMain.this.statusViewThread.addMonitoredNode(n);
 				} else {
 					logger.debug("Received heartbeat from node " + status.getNodeId());
-					if (DetectMain.this.nodes.get(status.getNodeId()).updateStatus(status)) {
-						// TODO: check leader id of other node? 
-						if (DetectMain.this.myNode.getLeaderId() == DetectMain.this.myNode.getId() && DetectMain.this.myNode.getLeaderId() > status.getLeaderId())
-							DetectMain.this.electionMgr.startNewElection();
-						// Go through all reported failed nodes and update local state if necessary
-						for (Node failNode : status.getFailedNodes()) {
-							DetectMain.this.verifyFailedNode(failNode);
+					Node reportingNode = DetectMain.this.nodes.get(status.getNodeId()); 
+					NodeState oldState = reportingNode.getState();
+					if (reportingNode.updateStatus(status, DetectMain.this.myNode.getNumProcOperating())) {
+						if (oldState != reportingNode.getState()) {
+							DetectMain.this.onNodeStateChanged(reportingNode, oldState);							
+						}
+						if (!reportingNode.getState().equals(NodeState.INCOHERENT)) {
+							// TODO: check leader id of other node? 
+							if (DetectMain.this.myNode.getLeaderId() == DetectMain.this.myNode.getId() && 
+									DetectMain.this.myNode.getLeaderId() > status.getLeaderId())
+								DetectMain.this.electionMgr.startNewElection();
+							// Go through all reported failed nodes and update local state if necessary
+							for (Node failNode : status.getFailedNodes()) {
+								DetectMain.this.verifyFailedNode(failNode);
+							}
 						}
 					} else {
 						logger.error("Warning - Received out-of-order heartbeat from node " + status.getNodeId());
@@ -72,6 +81,7 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 	private Lock heartbeatLock;
 	private HashMap<Integer, Node> nodes;
 	private List<Node> failedNodes;
+	private List<Node> incoherentNodes;
 	private Thread detectorThread;
 	private Thread uiThread;
 	private LogHelper logger;
@@ -81,17 +91,20 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 	private HeartbeatThread hbThread;
 	private HeartbeatListener hbListener;
 	private GroupManager groupManager;
+	private boolean consensusPossible;
 
 	public DetectMain(String nodeName, int nodeId, List<Integer> peers) {
 		this.logger = new LogHelper(nodeId, System.out, System.err, null);
 		this.nodes = new HashMap<Integer, Node>();
 		this.failedNodes = new LinkedList<Node>();
+		this.incoherentNodes = new LinkedList<Node>();
 		this.heartbeatLock = new ReentrantLock();
 		// load up stored properties if available
 		this.myNode = new Node(nodeName, nodeId);
 		this.scheduledExecutor = new ScheduledThreadPoolExecutor(1);
-		this.statusViewThread = new NodeStatusViewThread(this.myNode.getId());
+		this.statusViewThread = new NodeStatusViewThread(this.myNode);
 		this.uiThread = new Thread(statusViewThread);
+		this.consensusPossible = false;
 		
 		if (peers != null) {
 			for (int peer : peers) {
@@ -114,7 +127,7 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 		this.myNode = new Node(nodeName, nodeId);
 		this.myNode.setNumProcOperating(numProcOperating);
 		this.scheduledExecutor = new ScheduledThreadPoolExecutor(1);
-		this.statusViewThread = new NodeStatusViewThread(this.myNode.getId());
+		this.statusViewThread = new NodeStatusViewThread(this.myNode);
 		this.uiThread = new Thread(statusViewThread);
 		
 		if (peers != null) {
@@ -222,6 +235,39 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 	 */
 	public int getNumGroupNodes() {
 		return this.nodes.size() + 1;
+	}
+
+	private void onNodeStateChanged(Node n, NodeState oldState) {
+		this.logger.log("Node " + n.getId() + " has changed state from " + oldState + " => " + n.getState());
+		switch(n.getState()) {
+			case ONLINE:
+			case OFFLINE:
+				synchronized (this.incoherentNodes) {
+					this.incoherentNodes.remove(n);					
+				}
+				break;
+			case INCOHERENT:
+				synchronized (this.incoherentNodes) {
+					if (!this.incoherentNodes.contains(n)) {
+						this.incoherentNodes.add(n);
+					}
+				}
+				this.electionMgr.excludeNodeFromElections(n);
+				break;
+			case SUSPECT:
+				break;
+			case UNKNOWN:
+				throw new IllegalStateException("Node has entered unknown state: " + n);
+		}
+		// Check if we are capable of reaching consensus
+		int maxFailedNodes = myNode.getNumProcOperating() - (2 * myNode.getNumProcOperating() / 3 + 1);
+		if (this.incoherentNodes.size() > maxFailedNodes && this.consensusPossible) {
+			this.consensusPossible = false;
+			this.logger.log("Consensus is no longer possible");
+		} else if (! this.consensusPossible) {
+			this.consensusPossible = true;
+			this.logger.log("Consensus is now possible");
+		}
 	}
 	
 	/**

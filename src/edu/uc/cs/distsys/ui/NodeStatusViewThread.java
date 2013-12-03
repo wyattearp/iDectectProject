@@ -8,16 +8,18 @@ public class NodeStatusViewThread implements Runnable {
 
 	private JFrame viewFrame;
 	private NodeStatusView nodeStatusView;
-	private int nodeID;
+	private Node node;
 	private String defaultTitle = "Node Status View - Node ID: ";
 	
-	public NodeStatusViewThread(int id) {
-		this.nodeID = id;
-		this.defaultTitle += this.nodeID;
+	public NodeStatusViewThread(Node n) {
+		this.node = n;
+		this.defaultTitle += this.node.getId();
 		//Create and setup the windows
 		viewFrame = new JFrame(this.defaultTitle);
 		viewFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		nodeStatusView = new NodeStatusView();
+		//Force the first update
+		this.getNodeStatusView().getNodePropertiesTable().setNode(this.node);
 	}
 
 	@Override
@@ -48,15 +50,12 @@ public class NodeStatusViewThread implements Runnable {
 	}
 
 	public int getNodeID() {
-		return nodeID;
-	}
-
-	public void setNodeID(int nodeID) {
-		this.nodeID = nodeID;
+		return node.getId();
 	}
 	
 	public void updateUI() {
 		this.getNodeStatusView().getNodeTable().fireTableDataChanged();
+		this.getNodeStatusView().getNodePropertiesTable().fireTableDataChanged();
 	}
 	
 	public void addMonitoredNode(Node n) {
