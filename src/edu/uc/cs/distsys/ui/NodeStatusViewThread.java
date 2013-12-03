@@ -19,7 +19,7 @@ public class NodeStatusViewThread implements Runnable {
 		viewFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		nodeStatusView = new NodeStatusView();
 		//Force the first update
-		this.getNodeStatusView().getNodePropertiesLabel().setText(this.node.toHTMLString());
+		this.getNodeStatusView().getNodePropertiesTable().setNode(this.node);
 	}
 
 	@Override
@@ -55,7 +55,7 @@ public class NodeStatusViewThread implements Runnable {
 	
 	public void updateUI() {
 		this.getNodeStatusView().getNodeTable().fireTableDataChanged();
-		this.getNodeStatusView().getNodePropertiesLabel().setText(this.node.toHTMLString());
+		this.getNodeStatusView().getNodePropertiesTable().fireTableDataChanged();
 	}
 	
 	public void addMonitoredNode(Node n) {
