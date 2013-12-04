@@ -40,6 +40,10 @@ public class NodeSingletonTableModel extends AbstractTableModel {
 	@Override
 	public Object getValueAt(int row, int col) {
 		
+		if (this.node == null) {
+			return null;
+		}
+		
 		if (col == 0) {
 			switch (row) {
 				case 0:

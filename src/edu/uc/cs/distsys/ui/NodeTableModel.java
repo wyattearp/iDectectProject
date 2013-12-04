@@ -1,6 +1,7 @@
 package edu.uc.cs.distsys.ui;
 
 import java.util.ArrayList;
+
 import javax.swing.table.AbstractTableModel;
 import edu.uc.cs.distsys.Node;
 
@@ -21,6 +22,13 @@ public class NodeTableModel extends AbstractTableModel {
 	public void addItem(Node n) {
 		// TODO: Since we only ever add nodes once, this should probably be fine
 		nodeList.add(n);
+	}
+	
+	public Node getNodeAtRow(int row) {
+		if (row < this.nodeList.size()) {
+			return this.nodeList.get(row);
+		}
+		return null;
 	}
 
 	@Override

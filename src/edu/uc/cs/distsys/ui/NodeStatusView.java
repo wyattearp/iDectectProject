@@ -4,35 +4,43 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 
-public class NodeStatusView extends JPanel {
+public class NodeStatusView extends JPanel implements TableModelListener {
 	
 	private static final long serialVersionUID = 1L;
 	private JTable viewTable;
 	private JTable propertyTable;
+	private JTable clickedTable;
 	private JScrollPane viewScrollPane;
 	private JScrollPane propScrollPane;
-	private NodeTableModel nodeTable;
-	private NodeSingletonTableModel nodePropertiesTable;
+	private JScrollPane clickedScrollPane;
+	private NodeTableModel nodeTableStorage;
+	private NodeSingletonTableModel nodePropertiesTableStorage;
+	private NodeSingletonTableModel clickedNodeTableStorage;
 	private static final int nodeTableWidth = 800;
 	private static final int nodeTableHeight = 100;
 	private static final int nodeDetailsTableWidth = 500;
 	private static final int nodeDetailsTableHeight = 100;
 
-	public NodeTableModel getNodeTable() {
-		return nodeTable;
-	}
-
-	public void setNodeTable(NodeTableModel nodeTable) {
-		this.nodeTable = nodeTable;
+	public NodeTableModel getNodeTableStorage() {
+		return nodeTableStorage;
 	}
 	
-	public NodeSingletonTableModel getNodePropertiesTable() {
-		return this.nodePropertiesTable;
+	public JTable getNodeTable() {
+		return this.viewTable;
+	}
+	
+	public NodeSingletonTableModel getNodePropertiesTableStorage() {
+		return this.nodePropertiesTableStorage;
+	}
+	
+	public NodeSingletonTableModel getClickedNodeTableStorage() {
+		return this.clickedNodeTableStorage;
 	}
 
 	public NodeStatusView() {
@@ -42,27 +50,34 @@ public class NodeStatusView extends JPanel {
 		GridBagConstraints c2 = new GridBagConstraints();
 		GridBagConstraints c3 = new GridBagConstraints();
 		
-		nodePropertiesTable = new NodeSingletonTableModel();
-		nodeTable = new NodeTableModel();
+		nodePropertiesTableStorage = new NodeSingletonTableModel();
+		nodeTableStorage = new NodeTableModel();
+		clickedNodeTableStorage = new NodeSingletonTableModel();
 		
 		// this is the table that holds details about what the net looks like
-		viewTable = new JTable(this.nodeTable);
+		viewTable = new JTable(this.nodeTableStorage);
 		viewTable.setPreferredScrollableViewportSize(new Dimension(nodeTableWidth,nodeTableHeight));
 		viewTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 		viewTable.setFillsViewportHeight(true);
 		
 		// this holds the details about this processes node
-		propertyTable = new JTable(this.nodePropertiesTable);
+		propertyTable = new JTable(this.nodePropertiesTableStorage);
 		propertyTable.setPreferredScrollableViewportSize(new Dimension(nodeDetailsTableWidth,nodeDetailsTableHeight));
 		propertyTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 		propertyTable.setFillsViewportHeight(true);
 		
+		// this holds the details about a clicked node in the table
+		clickedTable = new JTable(this.clickedNodeTableStorage);
+		clickedTable.setPreferredScrollableViewportSize(new Dimension(nodeDetailsTableWidth,nodeDetailsTableHeight));
+		clickedTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+		clickedTable.setFillsViewportHeight(true);
+		
 		// attach the table to the UI pane
 		viewScrollPane = new JScrollPane(viewTable);
 		propScrollPane = new JScrollPane(propertyTable);
+		clickedScrollPane = new JScrollPane(clickedTable);
 		
-		// column = x, row = y
-		/*
+		/* column = x, row = y
            +------------------+--------------------+
            |                  |                    |
            |                  |                    |
@@ -86,7 +101,7 @@ public class NodeStatusView extends JPanel {
 		// setup the "last clicked node" details" item or whatever we're going to make this
 		c2.gridx = 1;
 		c2.gridy = 0;
-		this.add(new JLabel("<html><div bgcolor='blue'>This is a thing where stuff can go ... eventually!!!</div></html>"),c2);
+		this.add(clickedScrollPane,c2);
 		
 		// setup the bottom panel
 		c3.gridx = 0;
@@ -119,5 +134,11 @@ public class NodeStatusView extends JPanel {
 
 	public static long getSerialversionuid() {
 		return serialVersionUID;
+	}
+
+	@Override
+	public void tableChanged(TableModelEvent arg0) {
+		// TODO Auto-generated method stub
+		
 	}
 }
