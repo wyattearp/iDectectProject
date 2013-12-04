@@ -89,7 +89,8 @@ public class GroupManager {
 	
 	private static final int REQUEST_PORT = 10000;
 	private static final int INVITATION_PORT = 10001;
-	private static final long INVITATION_TIMEOUT_MS = 3000;
+	private static final long INVITATION_TIMEOUT_MS = 1000;
+	private static final int NUM_INVITES_TO_SEND = 5;
 	
 	private Node myNode;
 	private ConcurrentMap<Integer, Cookie> cookieMappings;
@@ -142,12 +143,18 @@ public class GroupManager {
 		}
 		
 		try {
-			logger.log("Sending group join request");
-			// Send the group join request
-			this.groupRequestor.send(request);
-			
-			// wait for a group invitation
-			GroupInvitation invite = myInvitations.poll(INVITATION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+			GroupInvitation invite = null;
+			for (int i = 0; i < NUM_INVITES_TO_SEND; ++i) {
+				logger.log("Sending group join request (attempt #" + (i+1) + ")");
+				// Send the group join request
+				this.groupRequestor.send(request);
+				
+				// wait for a group invitation
+				invite = myInvitations.poll(INVITATION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+				
+				if (invite != null)
+					break;
+			}
 			
 			if (invite == null) {	// No invite :-(
 				logger.log("Didn't receive an invitation :-(");
