@@ -42,6 +42,7 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 					Node n = new Node(status);
 					DetectMain.this.nodes.put(status.getNodeId(), n);
 					DetectMain.this.statusViewThread.addMonitoredNode(n);
+					DetectMain.this.onNodeStateChanged(n, NodeState.UNKNOWN);
 				} else {
 					logger.debug("Received heartbeat from node " + status.getNodeId());
 					Node reportingNode = DetectMain.this.nodes.get(status.getNodeId()); 
@@ -245,18 +246,18 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 		}
 		// Check if we are capable of reaching consensus
 		int minCorrectNodes = 2 * myNode.getNumProcOperating() / 3 + 1;
-		int numCorrectNodes = 0;
+		int numCorrectNodes = 1;	// always count myself
 		for (Node node : this.nodes.values()) {
-			if (node.equals(NodeState.ONLINE)) {
+			if (node.getState().equals(NodeState.ONLINE)) {
 				numCorrectNodes++;
 			}
 		}
 		if (numCorrectNodes < minCorrectNodes) {
 			this.consensusPossible = false;
-			this.logger.log("Consensus is no longer possible");
+			this.logger.log("Consensus is not possible (need " + minCorrectNodes + ", have " + numCorrectNodes + ")");
 		} else if (! this.consensusPossible) {
 			this.consensusPossible = true;
-			this.logger.log("Consensus is now possible");
+			this.logger.log("Consensus is possible (have " + numCorrectNodes + "/" + myNode.getNumProcOperating() + " correct nodes)");
 		}
 
 //		int maxFailedNodes = myNode.getNumProcOperating() - (2 * myNode.getNumProcOperating() / 3 + 1);
@@ -303,11 +304,17 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 			if (!nodes.containsKey(node.getId())) {
 				logger.log("Discovered new node (offline) - " + node.getId());
 				this.nodes.put(node.getId(), Node.createFailedNode(node.getId(), node.getState(), node.getSeqHighWaterMark()));
+				this.onNodeStateChanged(node, NodeState.UNKNOWN);
 			} else {
 				Node localNode = nodes.get(node.getId());
 				if (! localNode.isOffline() && localNode.getSeqHighWaterMark() <= node.getSeqHighWaterMark()) {
+					NodeState oldState = localNode.getState();
 					//update our node
 					localNode.updateState(node);
+					// See if the node's state has changed
+					if (!localNode.getState().equals(oldState)) {
+						this.onNodeStateChanged(localNode, oldState);
+					}
 					// Check if the node has been marked as failed
 					if (localNode.isOffline())
 						onFailedNode(localNode);
@@ -337,6 +344,7 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 			// DEBUGGING
 			//port = new Random(System.currentTimeMillis()).nextInt(1000) + 1024;
 			node = new Random(System.currentTimeMillis()).nextInt(1000);
+			numProcOperating = 9;
 		} else {
 			if (args.length >= 1) {
 				// first arg is node id
@@ -354,22 +362,13 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 				// third arg is the number of processes
 				numProcOperating = Integer.parseInt(args[2]);
 			} 
-			// DEBUG
-			else {
-				numProcOperating = 9;
-			}
 		}
 		// TODO: does this peer thing even work?? - WN
 		List<Integer> peers = new LinkedList<Integer>();
 		for (int i = 3; i < args.length; i++) {
 			peers.add(Integer.parseInt(args[i]));
 		}
-		final DetectMain detector;
-		if (args.length >= 3) {
-			detector = new DetectMain(name, node, peers,numProcOperating);
-		} else {
-			detector = new DetectMain(name, node, peers);
-		}
+		final DetectMain detector = new DetectMain(name, node, peers, numProcOperating);
 		try {
 			//detector.setGroupId(group);
 			Runtime.getRuntime().addShutdownHook(new Thread() {
