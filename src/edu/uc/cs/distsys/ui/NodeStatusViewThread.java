@@ -28,12 +28,14 @@ public class NodeStatusViewThread implements Runnable {
 		    public void mouseClicked(MouseEvent evnt) {
 		        if (evnt.getClickCount() == 1) {
 		        	int row = getNodeStatusView().getNodeTable().getSelectedRow();
-		        	Node clickedNode = getNodeStatusView().getNodeTableStorage().getNodeAtRow(row);
-		        	System.out.println("Clicked node: " + clickedNode.toString());
-		        	// set the new data
-		        	getNodeStatusView().getClickedNodeTableStorage().setNode(clickedNode);
-		        	// force the UI update
-		        	getNodeStatusView().getClickedNodeTableStorage().fireTableDataChanged();
+		        	if (row != -1) {
+			        	Node clickedNode = getNodeStatusView().getNodeTableStorage().getNodeAtRow(row);
+			        	System.out.println("Clicked node: " + clickedNode.toString());
+			        	// set the new data
+			        	getNodeStatusView().getClickedNodeTableStorage().setNode(clickedNode);
+			        	// force the UI update
+			        	getNodeStatusView().getClickedNodeTableStorage().fireTableDataChanged();
+		        	}
 		         }
 		     }
 		});
