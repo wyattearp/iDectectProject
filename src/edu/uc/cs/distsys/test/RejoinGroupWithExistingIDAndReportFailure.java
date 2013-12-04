@@ -19,6 +19,7 @@ public class RejoinGroupWithExistingIDAndReportFailure {
 	final static String FAILED_MSG = "Req A9 Failed";
 	private DetectMain leader;
 	private DetectMain joiner;
+	private DetectMain joinerRestart;
 	
 	@Before
 	public void setup() throws InterruptedException {
@@ -48,7 +49,8 @@ public class RejoinGroupWithExistingIDAndReportFailure {
 		
 		// Attempt to rejoin using the same identifier
 		try {
-			joiner.start();
+			joinerRestart = new DetectMain(joiner.getId(), null);
+			joinerRestart.start();
 		} catch (UnknownHostException e) {
 			assertTrue(e.toString(), false);
 		} catch (GroupJoinException e) {

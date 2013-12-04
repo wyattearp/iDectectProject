@@ -4,6 +4,7 @@ import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -20,12 +21,13 @@ public class LogHelper implements Logger {
 	}
 	
 	private BlockingQueue<LogHelper.LogEntry> logQueue;
+	private CountDownLatch threadCompleteLatch;
 	private Thread writerThread;
 	
 	private final int nodeId;
-	private final PrintStream outStream;
-	private final PrintStream dbgStream;
-	private final PrintStream errStream;
+	private PrintStream outStream;
+	private PrintStream dbgStream;
+	private PrintStream errStream;
 	
 	public LogHelper(int nodeId, PrintStream out, PrintStream err, PrintStream dbg) {
 		this.nodeId = nodeId;
@@ -33,6 +35,7 @@ public class LogHelper implements Logger {
 		this.errStream = err;
 		this.dbgStream = dbg;
 		this.logQueue = new LinkedBlockingQueue<LogEntry>();
+		this.threadCompleteLatch = new CountDownLatch(1);
 		this.writerThread = Executors.defaultThreadFactory().newThread(new Runnable() {
 			@Override
 			public void run() {
@@ -45,6 +48,7 @@ public class LogHelper implements Logger {
 						break;
 					}
 				}
+				LogHelper.this.threadCompleteLatch.countDown();
 			}
 		});
 		this.writerThread.start();
@@ -52,6 +56,15 @@ public class LogHelper implements Logger {
 	
 	public void close() {
 		this.writerThread.interrupt();
+		try { this.threadCompleteLatch.await(); } catch (InterruptedException e) {}
+		this.logQueue.clear();
+	}
+	
+	@Override
+	public void setOutputStreams(PrintStream out, PrintStream err, PrintStream dbg) {
+		this.outStream = out;
+		this.errStream = err;
+		this.dbgStream = dbg;
 	}
 	
 	@Override
@@ -75,7 +88,7 @@ public class LogHelper implements Logger {
 		try {
 			this.logQueue.put(new LogEntry(finalMsg, out));
 		} catch (InterruptedException e) {
-			System.err.println(finalMsg);
+			//System.err.println(finalMsg);
 		}
 	}
 }
