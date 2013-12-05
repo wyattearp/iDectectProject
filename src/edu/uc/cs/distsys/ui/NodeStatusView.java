@@ -1,5 +1,6 @@
 package edu.uc.cs.distsys.ui;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -67,8 +68,9 @@ public class NodeStatusView extends JPanel implements TableModelListener {
 		propertyTable.setPreferredScrollableViewportSize(new Dimension(nodeDetailsTableWidth,nodeDetailsTableHeight));
 		propertyTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 		propertyTable.setFillsViewportHeight(true);
+		propertyTable.setBackground(Color.LIGHT_GRAY);
 		//TODO: same drill
-		propertyTable.getColumnModel().getColumn(1).setCellRenderer(new NodeStateTableCustomRenderer());
+		//propertyTable.getColumnModel().getColumn(1).setCellRenderer(new NodeStateTableCustomRenderer());
 		
 		// this holds the details about a clicked node in the table
 		clickedTable = new JTable(this.clickedNodeTableStorage);
