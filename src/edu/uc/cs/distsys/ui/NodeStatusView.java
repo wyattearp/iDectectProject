@@ -71,7 +71,7 @@ public class NodeStatusView extends JPanel implements TableModelListener {
 		propertyTable.setBackground(Color.LIGHT_GRAY);
 		this.nodePropertiesTableStorage.setConsensusPossible(false);
 		//TODO: same drill
-		//propertyTable.getColumnModel().getColumn(1).setCellRenderer(new NodeStateTableCustomRenderer());
+		propertyTable.getColumnModel().getColumn(1).setCellRenderer(new NodeConcensusTableCustomRednerer());
 		
 		// this holds the details about a clicked node in the table
 		clickedTable = new JTable(this.clickedNodeTableStorage);
