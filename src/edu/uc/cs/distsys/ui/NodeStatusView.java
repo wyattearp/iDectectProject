@@ -26,7 +26,7 @@ public class NodeStatusView extends JPanel implements TableModelListener {
 	private static final int nodeTableWidth = 800;
 	private static final int nodeTableHeight = 100;
 	private static final int nodeDetailsTableWidth = 500;
-	private static final int nodeDetailsTableHeight = 100;
+	private static final int nodeDetailsTableHeight = 112;
 
 	public NodeTableModel getNodeTableStorage() {
 		return nodeTableStorage;
@@ -69,6 +69,7 @@ public class NodeStatusView extends JPanel implements TableModelListener {
 		propertyTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 		propertyTable.setFillsViewportHeight(true);
 		propertyTable.setBackground(Color.LIGHT_GRAY);
+		this.nodePropertiesTableStorage.setConsensusPossible(false);
 		//TODO: same drill
 		//propertyTable.getColumnModel().getColumn(1).setCellRenderer(new NodeStateTableCustomRenderer());
 		

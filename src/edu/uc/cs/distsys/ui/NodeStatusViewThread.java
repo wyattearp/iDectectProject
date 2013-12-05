@@ -83,6 +83,7 @@ public class NodeStatusViewThread implements Runnable {
 	public void updateUI() {
 		this.getNodeStatusView().getNodeTableStorage().fireTableDataChanged();
 		this.getNodeStatusView().getNodePropertiesTableStorage().fireTableDataChanged();
+		this.getNodeStatusView().getClickedNodeTableStorage().fireTableDataChanged();
 	}
 	
 	public void addMonitoredNode(Node n) {
@@ -95,6 +96,10 @@ public class NodeStatusViewThread implements Runnable {
 		} else {
 			this.viewFrame.setTitle(this.defaultTitle);
 		}
+	}
+	
+	public void setThisNodeConsensusPossible(boolean possible) {
+		this.getNodeStatusView().getNodePropertiesTableStorage().setConsensusPossible(possible);
 	}
 	
 }

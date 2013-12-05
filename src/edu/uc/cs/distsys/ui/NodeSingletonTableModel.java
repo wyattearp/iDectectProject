@@ -11,9 +11,16 @@ public class NodeSingletonTableModel extends AbstractTableModel {
 			"Item Details"
 	};
 	private Node node;
+	private boolean renderConsensus = false;
+	private boolean consensusPossible = false;
 	
 	public void setNode(Node n) {
 		this.node = n;
+	}
+	
+	public void setConsensusPossible(boolean possible) {
+		this.renderConsensus = true;
+		this.consensusPossible = possible;
 	}
 	
 	@Override
@@ -34,7 +41,11 @@ public class NodeSingletonTableModel extends AbstractTableModel {
 		// Node Group ID
 		// Node Group Cookie
 		// Node Number of Processes Operating
-		return 6;
+		if (this.renderConsensus)
+		// Node Consensus Possible
+			return 7;
+		else
+			return 6;
 	}
 
 	@Override
@@ -58,6 +69,8 @@ public class NodeSingletonTableModel extends AbstractTableModel {
 					return "Node Group Cookie";
 				case 5:
 					return "Node Number of Processes Operating";
+				case 6:
+					return "Node Consensus Possible";
 			}
 		}
 		if (col == 1) {
@@ -78,6 +91,8 @@ public class NodeSingletonTableModel extends AbstractTableModel {
 					return this.node.getGroupCookie().toString();
 				case 5: // Leader ID
 					return this.node.getNumProcOperating();
+				case 6: // Node Consensus Possible
+					return this.consensusPossible;
 			}
 		}
 		
