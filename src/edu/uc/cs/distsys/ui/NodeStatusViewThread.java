@@ -29,7 +29,6 @@ public class NodeStatusViewThread implements Runnable {
 		    	// process event
 		    	int row = 0;	    	
 		    	row = getNodeStatusView().getNodeTable().rowAtPoint(mEvent.getPoint());
-		    	System.out.println(row);
 				if (row >= 0) {
 					//System.out.println("Selected row: " + row);
 					Node clickedNode = getNodeStatusView().getNodeTableStorage().getNodeAtRow(row);
