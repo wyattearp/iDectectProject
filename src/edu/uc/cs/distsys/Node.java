@@ -54,6 +54,7 @@ public class Node implements Serializable {
 				.getTimestamp(), NodeState.ONLINE, stateChangeListner);
 		this.setLeaderId(hb.getLeaderId());
 		this.setGroupId(hb.getNode().getGroupId());
+		this.setGroupCookie(hb.getNode().getGroupCookie());
 	}
 
 	private Node(String name, int id, int seqNum, long checkinRecv, long checkinSent,
