@@ -166,6 +166,11 @@ public class DetectMain implements LeaderChangeListener, FailureListener, NodeSt
 		this.electionMgr.addMonitor(monitor);
 	}
 	
+	private void setConsensusPossible(boolean consensusPossible) {
+		this.consensusPossible = consensusPossible;
+		this.statusViewThread.setThisNodeConsensusPossible(consensusPossible);
+	}
+	
 	@Override
 	public void onFailedNode(Node failed) {
 		try {
@@ -254,10 +259,10 @@ public class DetectMain implements LeaderChangeListener, FailureListener, NodeSt
 			}
 		}
 		if (numCorrectNodes < minCorrectNodes) {
-			this.consensusPossible = false;
+			setConsensusPossible(false);
 			this.logger.log("Consensus is not possible (need " + minCorrectNodes + ", have " + numCorrectNodes + ")");
 		} else if (! this.consensusPossible) {
-			this.consensusPossible = true;
+			setConsensusPossible(true);
 			this.logger.log("Consensus is possible (have " + numCorrectNodes + "/" + myNode.getNumProcOperating() + " correct nodes)");
 		}
 	}
