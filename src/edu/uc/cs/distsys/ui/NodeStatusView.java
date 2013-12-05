@@ -24,7 +24,7 @@ public class NodeStatusView extends JPanel implements TableModelListener {
 	private NodeSingletonTableModel nodePropertiesTableStorage;
 	private NodeSingletonTableModel clickedNodeTableStorage;
 	private static final int nodeTableWidth = 800;
-	private static final int nodeTableHeight = 100;
+	private static final int nodeTableHeight = 190;
 	private static final int nodeDetailsTableWidth = 500;
 	private static final int nodeDetailsTableHeight = 112;
 
@@ -117,7 +117,9 @@ public class NodeStatusView extends JPanel implements TableModelListener {
 		c3.gridy = 1;
 		c3.gridheight = 2; // since this is the last one, we're going to tell it how big everything is
 		c3.gridwidth = 2;  // this is measured in row,col - not pixels
-		c3.fill = GridBagConstraints.HORIZONTAL;
+		c3.weightx = 1.0;
+		c3.weighty = 1.0;
+		c3.fill = GridBagConstraints.BOTH;
 		this.add(viewScrollPane,c3);
 	}
 
