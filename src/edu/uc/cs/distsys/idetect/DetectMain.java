@@ -16,6 +16,7 @@ import edu.uc.cs.distsys.LogHelper;
 import edu.uc.cs.distsys.Logger;
 import edu.uc.cs.distsys.Node;
 import edu.uc.cs.distsys.NodeState;
+import edu.uc.cs.distsys.NodeStateChangeListener;
 import edu.uc.cs.distsys.comms.MessageHandler;
 import edu.uc.cs.distsys.comms.NotifyThread;
 import edu.uc.cs.distsys.ilead.ElectionManager;
@@ -26,7 +27,7 @@ import edu.uc.cs.distsys.init.GroupJoinException;
 import edu.uc.cs.distsys.init.GroupManager;
 import edu.uc.cs.distsys.ui.NodeStatusViewThread;
 
-public class DetectMain implements LeaderChangeListener, FailureListener {
+public class DetectMain implements LeaderChangeListener, FailureListener, NodeStateChangeListener {
 
 	private class HeartbeatListener extends MessageHandler<Heartbeat> {
 		public HeartbeatListener(Logger logger) {
@@ -39,10 +40,9 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 				DetectMain.this.heartbeatLock.lock();
 				if (!nodes.containsKey(status.getNodeId())) {
 					logger.log("Discovered new node - " + status.getNodeId());
-					Node n = new Node(status);
+					Node n = new Node(status, DetectMain.this);
 					DetectMain.this.nodes.put(status.getNodeId(), n);
 					DetectMain.this.statusViewThread.addMonitoredNode(n);
-					DetectMain.this.onNodeStateChanged(n, NodeState.UNKNOWN);
 				} else {
 					logger.debug("Received heartbeat from node " + status.getNodeId());
 					Node reportingNode = DetectMain.this.nodes.get(status.getNodeId()); 
@@ -106,11 +106,11 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 		this.uiThread = new Thread(statusViewThread);
 		this.consensusPossible = false;
 		
-		if (peers != null) {
-			for (int peer : peers) {
-				this.nodes.put(peer, new Node(peer));
-			}
-		}
+//		if (peers != null) {
+//			for (int peer : peers) {
+//				this.nodes.put(peer, new Node(peer));
+//			}
+//		}
 	}
 	
 	public DetectMain(int nodeId, List<Integer> peers) {
@@ -167,7 +167,7 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 	}
 	
 	@Override
-	public void onFailedNode(Node failed, NodeState oldState) {
+	public void onFailedNode(Node failed) {
 		try {
 			this.heartbeatLock.lock();
 			this.failedNodes.add(failed);
@@ -177,9 +177,6 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 //logger.error("NODE FAILED: " + failed);
 		if (failed.getId() == myNode.getLeaderId())
 			this.electionMgr.onLeaderFailed();
-		if (!oldState.equals(failed.getState())) {
-			this.onNodeStateChanged(failed, oldState);
-		}
 		this.statusViewThread.updateUI();
 	}
 	
@@ -225,7 +222,8 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 		return this.nodes.size() + 1;
 	}
 
-	private void onNodeStateChanged(Node n, NodeState oldState) {
+	@Override
+	public void onNodeStateChanged(Node n, NodeState oldState) {
 		this.logger.log("Node " + n.getId() + " has changed state from " + oldState + " => " + n.getState());
 		switch(n.getState()) {
 			case ONLINE:
@@ -301,21 +299,16 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 			this.heartbeatLock.lock();
 			if (!nodes.containsKey(node.getId())) {
 				logger.log("Discovered new node (offline) - " + node.getId());
-				this.nodes.put(node.getId(), Node.createFailedNode(node.getId(), node.getState(), node.getSeqHighWaterMark()));
+				this.nodes.put(node.getId(), Node.createFailedNode(node.getId(), node.getState(), node.getSeqHighWaterMark(), this));
 				this.onNodeStateChanged(node, NodeState.UNKNOWN);
 			} else {
 				Node localNode = nodes.get(node.getId());
 				if (! localNode.isOffline() && localNode.getSeqHighWaterMark() <= node.getSeqHighWaterMark()) {
-					NodeState oldState = localNode.getState();
 					//update our node
 					localNode.updateState(node);
-					// See if the node's state has changed
-					if (!localNode.getState().equals(oldState) && ! localNode.isOffline()) {
-						this.onNodeStateChanged(localNode, oldState);
-					}
 					// Check if the node has been marked as failed
 					if (localNode.isOffline())
-						onFailedNode(localNode, oldState);
+						onFailedNode(localNode);
 					// If it was the leader, we need to elect a new one
 //					if (localNode.getId() == myNode.getLeaderId()) {
 //						this.electionMgr.onLeaderFailed();

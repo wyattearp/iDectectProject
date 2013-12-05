@@ -33,32 +33,31 @@ public class Node implements Serializable {
 	private Cookie groupCookie;
 	private int numProcOperating;
 	transient private NodePropertiesManager properties;
+	transient private NodeStateChangeListener stateChangeListener;
 
-	public static Node createFailedNode(int id, NodeState state, int seqNum) {
-		return new Node(null, id, seqNum, 0, 0, state);
+	public static Node createFailedNode(int id, NodeState state, 
+			int seqNum, NodeStateChangeListener stateChangeListener) {
+		return new Node(null, id, seqNum, 0, 0, state, stateChangeListener);
 	}
 
 	public Node(int id) {
-		this(null, id);
+		this(null, id, NodeState.UNKNOWN);
 	}
 	
-	public Node(String name, int id) {
-		this(name, id, NodeState.UNKNOWN);
-	}	
-
+	// This is only used to create the "local" node
 	public Node(String name, int id, NodeState initialState) {
-		this(name, id, -1, 0, 0, initialState);
+		this(name, id, -1, 0, 0, initialState, null);
 	}
 	
-	public Node(Heartbeat hb) {
+	public Node(Heartbeat hb, NodeStateChangeListener stateChangeListner) {
 		this(null, hb.getNodeId(), hb.getSeqNum(), System.currentTimeMillis(), hb
-				.getTimestamp(), NodeState.ONLINE);
+				.getTimestamp(), NodeState.ONLINE, stateChangeListner);
 		this.setLeaderId(hb.getLeaderId());
 		this.setGroupId(hb.getNode().getGroupId());
 	}
 
 	private Node(String name, int id, int seqNum, long checkinRecv, long checkinSent,
-			NodeState initialState) {
+			NodeState initialState, NodeStateChangeListener stateChangeListener) {
 		this.id = id;
 		this.seqHighWaterMark = seqNum;
 		this.lastCheckinRcv = checkinRecv;
@@ -74,6 +73,16 @@ public class Node implements Serializable {
 			this.properties.load();
 			this.persistProperties();
 		}
+		
+		// Set the state change listener last so we don't fire off unnecessary state change notifications
+		this.stateChangeListener = stateChangeListener;
+		if (stateChangeListener != null) {
+			stateChangeListener.onNodeStateChanged(this, NodeState.UNKNOWN);
+		}
+	}
+	
+	public void setStateChangeListener(NodeStateChangeListener stateChangeListener) {
+		this.stateChangeListener = stateChangeListener;
 	}
 
 	public int getId() {
@@ -107,6 +116,15 @@ public class Node implements Serializable {
 		return state;
 	}
 	
+	private void setState(NodeState state) {
+		NodeState old = this.state;
+		NodeStateChangeListener listener = this.stateChangeListener;
+		this.state = state;
+		if (!state.equals(old) && listener != null) {
+			listener.onNodeStateChanged(this, old);
+		}
+	}
+	
 	public long getSuspectTime() {
 		return suspectTime;
 	}
@@ -122,14 +140,12 @@ public class Node implements Serializable {
 	}
 	
 	public void setGroupCookie(Cookie groupCookie) {
-		//System.err.println("SETTING COOKIE " + groupCookie);
-		//try { throw new Exception(); } catch (Throwable t) { t.printStackTrace(); };
 		this.groupCookie = groupCookie;
 		this.persistProperties();
 	}
 
 	public boolean isOffline() {
-		return this.state == NodeState.OFFLINE;
+		return getState() == NodeState.OFFLINE;
 	}
 	
 	public boolean updateStatus(Heartbeat hb, int expectedNumSysProcs) {
@@ -145,9 +161,9 @@ public class Node implements Serializable {
 			this.seqHighWaterMark = hb.getSeqNum();
 			this.numProcOperating = hb.getNode().getNumProcOperating();
 			if (expectedNumSysProcs == hb.getNode().getNumProcOperating()) {
-				this.state = NodeState.ONLINE;
+				setState(NodeState.ONLINE);
 			} else {
-				this.state = NodeState.INCOHERENT;
+				setState(NodeState.INCOHERENT);
 			}
 			updated = true;
 		}
@@ -156,7 +172,7 @@ public class Node implements Serializable {
 
 	public void updateState(Node node) {
 		this.seqHighWaterMark = node.getSeqHighWaterMark();
-		this.state = node.getState();
+		setState(node.getState());
 		this.suspectTime = node.getSuspectTime();
 	}
 
@@ -164,16 +180,16 @@ public class Node implements Serializable {
 		Calendar curTime = Calendar.getInstance();
 		Calendar lastCheckinTime = Calendar.getInstance();
 		curTime.setTimeInMillis(currentTime);
-		curTime.add(Calendar.MILLISECOND, (int) (-1 * DetectMain.HB_PERIOD_MS));
+		curTime.add(Calendar.MILLISECOND, (int) (-1.25 * (double)DetectMain.HB_PERIOD_MS));
 		lastCheckinTime.setTimeInMillis(this.getLastCheckinRcv());
-		if (state.equals(NodeState.SUSPECT)) {
+		if (getState().equals(NodeState.SUSPECT)) {
 			if((currentTime - suspectTime) >= (3 * DetectMain.HB_PERIOD_MS)) {
 				suspectTime = 0;
-				this.state = NodeState.OFFLINE;
+				setState(NodeState.OFFLINE);
 			}
-		} else if (! state.equals(NodeState.OFFLINE)) {
+		} else if (! getState().equals(NodeState.OFFLINE)) {
 			if (lastCheckinTime.before(curTime)) {
-				this.state = NodeState.SUSPECT;
+				setState(NodeState.SUSPECT);
 				this.suspectTime = currentTime;
 			}
 		}
@@ -230,7 +246,14 @@ public class Node implements Serializable {
 		Node newNode = new Node(this.id);
 		newNode.lastCheckinRcv = this.lastCheckinRcv;
 		newNode.seqHighWaterMark = this.seqHighWaterMark;
-		newNode.state = state;
+		newNode.state = this.state;
+		newNode.stateChangeListener = this.stateChangeListener;
+		newNode.groupCookie = this.groupCookie;
+		newNode.groupId = this.groupId;
+		newNode.leaderId = this.leaderId;
+		newNode.numProcOperating = this.numProcOperating;
+		newNode.properties = this.properties;
+		newNode.suspectTime = this.suspectTime;
 		return newNode;
 	}
 
