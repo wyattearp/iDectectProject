@@ -36,6 +36,7 @@ public class GroupManager {
 						GroupManager.this.logger.log("Node rejoining the group " + message.getSenderId() + " cookie - " + message.getGroupCookie());
 						invite = new GroupInvitation(GroupManager.this.myNode.getId(), message.getSenderId(), 0, message.getGroupCookie(), message.getRequestUid());
 					} else {
+						//TODO: We really shouldn't reject someone until we know the id we sent previously is in use
 						GroupManager.this.logger.log("Rejecting group request from " + message.getSenderId() + " cookie - " + message.getGroupCookie());
 						invite = new GroupInvitation(GroupManager.this.myNode.getId(), message.getSenderId(), 0, Cookie.INVALID_COOKIE, message.getRequestUid());
 					}

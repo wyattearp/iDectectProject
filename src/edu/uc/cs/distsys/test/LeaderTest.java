@@ -19,6 +19,7 @@ public class LeaderTest {
 		}
 		
 		public boolean inElection;
+		public boolean hasVoted;
 		public int numElections;
 		public int reportedLeader;
 		public DetectMain node;
@@ -34,7 +35,7 @@ public class LeaderTest {
 	 * @throws GroupJoinException
 	 */
 	public ConcurrentNavigableMap<Integer, ElectionInfo> startNodes(int numNodes, ElectionMonitor monitor, long nodeStartupTimeMs) throws UnknownHostException, GroupJoinException {
-		return startNodes(numNodes, new ArrayList<Integer>(), 0, monitor, nodeStartupTimeMs);
+		return startNodes(numNodes, new ArrayList<Integer>(), numNodes, monitor, nodeStartupTimeMs);
 	}
 	
 	/**
