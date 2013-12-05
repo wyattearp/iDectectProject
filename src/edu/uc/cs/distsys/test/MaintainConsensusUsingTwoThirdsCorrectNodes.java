@@ -31,7 +31,7 @@ public class MaintainConsensusUsingTwoThirdsCorrectNodes extends LeaderTest impl
 	@Before
 	public void setup() {
 		// Create 3 Byzantine nodes which will report that there are 999 total nodes in the group
-		byzantineNodes = new ArrayList<>();
+		byzantineNodes = new ArrayList<Integer>();
 		byzantineNodes.add(100);
 		byzantineNodes.add(300);
 		byzantineNodes.add(500);

@@ -1,5 +1,6 @@
 package edu.uc.cs.distsys.ui;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -59,18 +60,25 @@ public class NodeStatusView extends JPanel implements TableModelListener {
 		viewTable.setPreferredScrollableViewportSize(new Dimension(nodeTableWidth,nodeTableHeight));
 		viewTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 		viewTable.setFillsViewportHeight(true);
+		//TODO: if you ever change the node column order, you'll jack this up
+		viewTable.getColumnModel().getColumn(this.nodeTableStorage.getColumnNumberFromName("Current State")).setCellRenderer(new NodeStateTableCustomRenderer());
 		
 		// this holds the details about this processes node
 		propertyTable = new JTable(this.nodePropertiesTableStorage);
 		propertyTable.setPreferredScrollableViewportSize(new Dimension(nodeDetailsTableWidth,nodeDetailsTableHeight));
 		propertyTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 		propertyTable.setFillsViewportHeight(true);
+		propertyTable.setBackground(Color.LIGHT_GRAY);
+		//TODO: same drill
+		//propertyTable.getColumnModel().getColumn(1).setCellRenderer(new NodeStateTableCustomRenderer());
 		
 		// this holds the details about a clicked node in the table
 		clickedTable = new JTable(this.clickedNodeTableStorage);
 		clickedTable.setPreferredScrollableViewportSize(new Dimension(nodeDetailsTableWidth,nodeDetailsTableHeight));
 		clickedTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 		clickedTable.setFillsViewportHeight(true);
+		//TODO: same drill
+		clickedTable.getColumnModel().getColumn(1).setCellRenderer(new NodeStateTableCustomRenderer());
 		
 		// attach the table to the UI pane
 		viewScrollPane = new JScrollPane(viewTable);
