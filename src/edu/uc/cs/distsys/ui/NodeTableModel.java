@@ -1,6 +1,7 @@
 package edu.uc.cs.distsys.ui;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.swing.table.AbstractTableModel;
 import edu.uc.cs.distsys.Node;
@@ -18,6 +19,10 @@ public class NodeTableModel extends AbstractTableModel {
 			"Group ID"
 	};
 	private ArrayList<Node> nodeList = new ArrayList<Node>();
+	
+	public int getColumnNumberFromName(String name) {
+		return Arrays.asList(columnNames).indexOf(name);
+	}
 	
 	public void addItem(Node n) {
 		// TODO: Since we only ever add nodes once, this should probably be fine

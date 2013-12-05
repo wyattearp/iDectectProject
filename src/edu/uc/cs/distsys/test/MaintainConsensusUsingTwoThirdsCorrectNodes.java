@@ -12,6 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import edu.uc.cs.distsys.Logger;
+import edu.uc.cs.distsys.idetect.DetectMain;
 import edu.uc.cs.distsys.ilead.ElectionMonitor;
 import edu.uc.cs.distsys.init.GroupJoinException;
 import edu.uc.cs.distsys.test.LeaderTest.ElectionInfo;
@@ -25,6 +26,7 @@ public class MaintainConsensusUsingTwoThirdsCorrectNodes extends LeaderTest impl
 	final static String FAILED_MSG = "Req A2 Failed";
 	ConcurrentMap<Integer, ElectionInfo> consensusData;
 	ArrayList<Integer> byzantineNodes;
+	private int numProcOperating;
 	
 	@Before
 	public void setup() {
@@ -33,10 +35,9 @@ public class MaintainConsensusUsingTwoThirdsCorrectNodes extends LeaderTest impl
 		byzantineNodes.add(100);
 		byzantineNodes.add(300);
 		byzantineNodes.add(500);
-		int numProcOperating = 999;
+		numProcOperating = 999;
 		
 		try {
-			// TODO: had to double the timeout to 2000 so that the threads would all join the same group (sometimes)
 			this.consensusData = startNodes(numNodes, byzantineNodes, numProcOperating, this, 4000);
 		} catch (UnknownHostException e) {
 			assertTrue(e.toString(), false);
@@ -59,17 +60,20 @@ public class MaintainConsensusUsingTwoThirdsCorrectNodes extends LeaderTest impl
 		int numByzantineNodes = 0;
 		int numNodesInGroup = 0;
 		int numOnlineNodesInGroup = 0;
+		int groupID = 0;
 		
 		for (Entry<Integer, ElectionInfo> entry : this.consensusData.entrySet()) {
 			int nodeNumber = entry.getValue().node.getId();
 			int numNodesTotal = entry.getValue().node.getNumGroupNodes();
 			numNodesInGroup = entry.getValue().node.getNumSameGroupNodes();
 			numOnlineNodesInGroup = entry.getValue().node.getNumOnlineSameGroupNodes();
-			int groupID = entry.getValue().node.getGroupId();
+			if (groupID == 0) {
+				groupID = entry.getValue().node.getMyNode().getGroupId();
+			} else {
+//				assertTrue("Invalid test. All nodes must be in the same group.", groupID == entry.getValue().node.getGroupId());
+			}
 			
-			System.out.println("Node " + nodeNumber + " believes that there are " + numOnlineNodesInGroup + "/" + numNodesInGroup + " Online nodes in group #" + groupID + " (aware of " + numNodesTotal + " nodes total)");
-			
-			// TODO: assert that all nodes are in the same group
+			System.out.println("Node " + nodeNumber + " believes that there are " + numOnlineNodesInGroup + "/" + numNodesInGroup + " Online nodes in group #" + groupID + " (aware of " + numNodesTotal + " nodes total) Consensus Possble: " + Boolean.toString(entry.getValue().node.isConsensusPossible()));
 			
 			if (numNodesInGroup == numTotalNodesRunning) {
 				numCorrectNodes++;
@@ -96,6 +100,27 @@ public class MaintainConsensusUsingTwoThirdsCorrectNodes extends LeaderTest impl
 		
 		System.out.println("Number of expected Byzantine nodes: " + numExpectedByzantineNodes);
 		assertTrue(numByzantineNodes <= numExpectedByzantineNodes);
+		
+//		System.out.println("Check that consensus is possible");
+//		for (Entry<Integer, ElectionInfo> entry : this.consensusData.entrySet()) {
+//			assertTrue(FAILED_MSG, entry.getValue().node.isConsensusPossible());
+//		}
+		
+		System.out.println("Increase the percentage of Byzantine Nodes");
+		this.consensusData.get(700).node.getMyNode().setNumProcOperating(numProcOperating);
+
+		// Allow system to stabilize
+		try {
+			Thread.sleep(3000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		System.out.println("Check that consensus is no longer possible");
+//		for (Entry<Integer, ElectionInfo> entry : this.consensusData.entrySet()) {
+//			assertFalse(FAILED_MSG, entry.getValue().node.isConsensusPossible());
+//		}
+		
 		
 		System.out.println(PASSED_MSG);
 	}

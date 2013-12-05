@@ -384,4 +384,12 @@ public class DetectMain implements LeaderChangeListener, FailureListener, NodeSt
 //		detector.stop();
 	}
 
+	public boolean isConsensusPossible() {
+		return consensusPossible;
+	}
+
+	public Node getMyNode() {
+		return myNode;
+	}
+
 }
