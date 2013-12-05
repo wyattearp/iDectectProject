@@ -127,6 +127,15 @@ public class MulticastWrapper<T extends Message> implements CommsWrapper<T> {
 	}
 	
 	@Override
+	public boolean isClosed() {
+		boolean closed = true;
+		if (this.recvSocket != null) {
+			closed = this.recvSocket.isClosed();
+		}
+		return closed;
+	}
+	
+	@Override
 	public void includeNode(Node goodNode) {
 		this.excludedNodes.remove(goodNode.getId());
 	}
