@@ -3,7 +3,6 @@ package edu.uc.cs.distsys.test;
 import static org.junit.Assert.*;
 
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 
@@ -11,11 +10,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import edu.uc.cs.distsys.Logger;
-import edu.uc.cs.distsys.idetect.DetectMain;
 import edu.uc.cs.distsys.ilead.ElectionMonitor;
 import edu.uc.cs.distsys.init.GroupJoinException;
-import edu.uc.cs.distsys.test.LeaderTest.ElectionInfo;
 
 public class MaintainConsensusUsingTwoThirdsCorrectNodes extends LeaderTest implements ElectionMonitor {
 
@@ -25,20 +21,17 @@ public class MaintainConsensusUsingTwoThirdsCorrectNodes extends LeaderTest impl
 	final static String PASSED_MSG = "Req A2 Passed: iTolerate shall maintain consensus functionality so long as strictly more than 2/3 of the processes in the system are correct";
 	final static String FAILED_MSG = "Req A2 Failed";
 	ConcurrentMap<Integer, ElectionInfo> consensusData;
-	ArrayList<Integer> byzantineNodes;
 	private int byzantineNumProcOperating;
 	
 	@Before
 	public void setup() {
-		// Create 3 Byzantine nodes which will report that there are 999 total nodes in the group
-		byzantineNodes = new ArrayList<Integer>();
-		byzantineNodes.add(100);
-		byzantineNodes.add(300);
-		byzantineNodes.add(500);
 		byzantineNumProcOperating = 999;
 		
 		try {
-			this.consensusData = startNodes(numNodes, byzantineNodes, byzantineNumProcOperating, this, 4000);
+			this.consensusData = startNodes(numNodes, this, 2000);
+			this.consensusData.get(100).node.setNumOperatingProcs(byzantineNumProcOperating);
+			this.consensusData.get(300).node.setNumOperatingProcs(byzantineNumProcOperating);
+			this.consensusData.get(500).node.setNumOperatingProcs(byzantineNumProcOperating);
 		} catch (UnknownHostException e) {
 			assertTrue(e.toString(), false);
 		} catch (GroupJoinException e) {
@@ -81,16 +74,6 @@ public class MaintainConsensusUsingTwoThirdsCorrectNodes extends LeaderTest impl
 				numByzantineNodes++;
 			}
 		}
-		
-		// DEBUG
-		System.out.flush();
-		System.err.println("numTotalNodesRunning: " + numTotalNodesRunning);
-		System.err.println("numCorrectNodes: " + numCorrectNodes);
-		System.err.println("numByzantineNodes: " + numByzantineNodes);
-		System.err.println("numNodesInGroup: " + numNodesInGroup);
-		System.err.println("numOnlineNodesInGroup: " + numOnlineNodesInGroup);
-		System.err.flush();
-		// END DEBUG
 		
 		System.out.println("Number of expected nodes running: " + numNodes);
 		assertTrue(numTotalNodesRunning == numNodes);

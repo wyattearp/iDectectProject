@@ -5,7 +5,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({ LeaderElectionIn3Seconds.class, ReplaceLeaderIn3Seconds.class, DeterministicIdentifier.class, ErrorJoiningGroupWithExistingID.class})
+@SuiteClasses({ LeaderElectionIn3Seconds.class, ReplaceLeaderIn3Seconds.class, DeterministicIdentifier.class, ErrorJoiningGroupWithExistingID.class, EachProcessHasBeliefStateForNumNodesInSystem.class, MaintainConsensusUsingTwoThirdsCorrectNodes.class})
 //@SuiteClasses({ LeaderElectionIn3Seconds.class, ReplaceLeaderIn3Seconds.class,
 //		TwelveNodesOnTwoHosts.class, UnnecessaryLeaderElections.class })
 public class AllTests {
