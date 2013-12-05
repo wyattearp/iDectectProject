@@ -89,7 +89,7 @@ public class NodeSingletonTableModel extends AbstractTableModel {
 					return this.node.getGroupId();
 				case 4: // Node Group Cookie
 					return this.node.getGroupCookie().toString();
-				case 5: // Leader ID
+				case 5: // Node Number of Processes Operating
 					return this.node.getNumProcOperating();
 				case 6: // Node Consensus Possible
 					return this.consensusPossible;
@@ -101,13 +101,37 @@ public class NodeSingletonTableModel extends AbstractTableModel {
 	}
 	
 	@Override
-	public void setValueAt(Object value, int row, int col) {
+	public boolean isCellEditable(int row, int col) {
+		// only the num proc operating is editable
+		// WARNING: this item is overload to prevent the other views beig able
+		// to be edited
+		if (this.renderConsensus) {
+			if (col == 1 && row == 5) {
+				return true;
+			}
+		}
+		return false;
 		
 	}
 	
 	@Override
-	public boolean isCellEditable(int row, int col) {
-		return false;
-	}
+    public void setValueAt(Object value, int row, int col) {
+		
+		if (col == 1 && row == 5) {
+			int p = -1;
+			try {
+				p = Integer.parseInt((String)value);
+			} catch (NumberFormatException e) {
+				p = -1;
+				System.out.println("ERROR: process number not actually a number: " + e);
+			}
+			if (p >= 1) {
+				this.node.setNumProcOperating(Integer.parseInt((String)value));
+				this.fireTableDataChanged();
+			} else {
+				System.out.println("ERROR: cannot set process number to less than 1, tried: " + p);
+			}
+		}
+    }
 
 }
