@@ -32,6 +32,10 @@ public class NodeStateTableCustomRenderer extends DefaultTableCellRenderer {
         } else if(table.getValueAt(row, column).equals(NodeState.INCOHERENT)) {
             cellComponent.setBackground(Color.RED);
             cellComponent.setForeground(Color.WHITE);
+        } else {
+        	// always reset to default colors
+        	cellComponent.setBackground(Color.WHITE);
+            cellComponent.setForeground(Color.BLACK);
         }
 
         return cellComponent;

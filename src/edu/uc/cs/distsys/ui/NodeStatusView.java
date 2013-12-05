@@ -67,12 +67,16 @@ public class NodeStatusView extends JPanel implements TableModelListener {
 		propertyTable.setPreferredScrollableViewportSize(new Dimension(nodeDetailsTableWidth,nodeDetailsTableHeight));
 		propertyTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 		propertyTable.setFillsViewportHeight(true);
+		//TODO: same drill
+		propertyTable.getColumnModel().getColumn(1).setCellRenderer(new NodeStateTableCustomRenderer());
 		
 		// this holds the details about a clicked node in the table
 		clickedTable = new JTable(this.clickedNodeTableStorage);
 		clickedTable.setPreferredScrollableViewportSize(new Dimension(nodeDetailsTableWidth,nodeDetailsTableHeight));
 		clickedTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 		clickedTable.setFillsViewportHeight(true);
+		//TODO: same drill
+		clickedTable.getColumnModel().getColumn(1).setCellRenderer(new NodeStateTableCustomRenderer());
 		
 		// attach the table to the UI pane
 		viewScrollPane = new JScrollPane(viewTable);
