@@ -3,6 +3,7 @@ package edu.uc.cs.distsys.comms;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -16,13 +17,21 @@ public class NotifyThread<T extends Message> implements Runnable {
 	private List<MessageListener<T>> listeners;
 	private Logger logger;
 	private Class<T> clazz;
+	private CountDownLatch threadStartedLatch;
 	
-	public NotifyThread(int nodeId, CommsWrapper<T> commWrapper, MessageListener<T> listener, Class<T> cls, Logger logger) {
+	public NotifyThread(int nodeId, CommsWrapper<T> commWrapper, MessageListener<T> listener, 
+			Class<T> cls, Logger logger) {
+		this(nodeId, commWrapper, listener, cls, logger, null);
+	}
+	
+	public NotifyThread(int nodeId, CommsWrapper<T> commWrapper, MessageListener<T> listener, 
+			Class<T> cls, Logger logger, CountDownLatch startupLatch) {
 		this.clazz = cls;
 		this.logger = logger;
 		this.myNodeId = nodeId;
 		this.commWrapper = commWrapper;
 		this.listLock = new ReentrantLock();
+		this.threadStartedLatch = startupLatch;
 		this.listeners = new CopyOnWriteArrayList<MessageListener<T>>();
 		if (listener != null)
 			this.listeners.add(listener);
@@ -53,6 +62,7 @@ public class NotifyThread<T extends Message> implements Runnable {
 	@Override
 	public void run() {
 		logger.log("Starting up notify thread (" + clazz.getSimpleName() + ")...");
+		if (this.threadStartedLatch != null) this.threadStartedLatch.countDown();
 		try {
 			while (!Thread.currentThread().isInterrupted()) {
 				try {

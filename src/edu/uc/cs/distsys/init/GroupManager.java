@@ -6,6 +6,7 @@ import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -40,7 +41,11 @@ public class GroupManager {
 					}
 				} else {
 					Random r = new Random();
-					Cookie newCookie = new Cookie(r.nextLong());
+					long cookieVal = 0;
+					while (cookieVal == 0) {
+						cookieVal = r.nextLong();
+					}
+					Cookie newCookie = new Cookie(cookieVal);
 					//TODO: there's a chance we could generate duplicate cookies (oops)
 //					while (GroupManager.this.cookieMappings.containsKey(newCookie)) {
 //						newCookie = new Cookie(r.nextLong());
@@ -89,8 +94,9 @@ public class GroupManager {
 	
 	private static final int REQUEST_PORT = 10000;
 	private static final int INVITATION_PORT = 10001;
-	private static final long INVITATION_TIMEOUT_MS = 1000;
-	private static final int NUM_INVITES_TO_SEND = 5;
+	private static final long INVITATION_TIMEOUT_MS = 500;
+	private static final int NUM_INVITES_TO_SEND = 10;
+	private static final long NOTIFY_THREAD_DEFAULT_TIMEOUT_SEC = 10;
 	
 	private Node myNode;
 	private ConcurrentMap<Integer, Cookie> cookieMappings;
@@ -105,7 +111,7 @@ public class GroupManager {
 
 	private BlockingQueue<GroupInvitation> myInvitations;
 	
-	public GroupManager(Node myNode, Logger logger) throws UnknownHostException {
+	public GroupManager(Node myNode, Logger logger) throws UnknownHostException, GroupJoinException {
 		this.myNode = myNode;
 		this.logger = logger;
 		this.cookieMappings = new ConcurrentHashMap<Integer, Cookie>();
@@ -116,14 +122,20 @@ public class GroupManager {
 		this.requestHandler = new GroupRequestListener(logger);
 		this.inviteHandler = new GroupInvitationListener(logger);
 		
+		CountDownLatch threadStartupLatch = new CountDownLatch(2);
 		this.requestThread = Executors.defaultThreadFactory().newThread(
-				new NotifyThread<GroupRequest>(myNode.getId(), groupRequestor, requestHandler, GroupRequest.class, logger));
+				new NotifyThread<GroupRequest>(myNode.getId(), groupRequestor, requestHandler, GroupRequest.class, logger, threadStartupLatch));
 		this.inviteThread = Executors.defaultThreadFactory().newThread(
-				new NotifyThread<GroupInvitation>(myNode.getId(), groupInvitor, inviteHandler, GroupInvitation.class, logger));
+				new NotifyThread<GroupInvitation>(myNode.getId(), groupInvitor, inviteHandler, GroupInvitation.class, logger, threadStartupLatch));
 		this.requestThread.start();
 		this.inviteThread.start();
-//		this.requestHandler.start();
-//		this.inviteHandler.start();
+		
+		try {
+			threadStartupLatch.await(NOTIFY_THREAD_DEFAULT_TIMEOUT_SEC, TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			logger.error("Failed to startup group message listeners in a timely manner");
+			throw new GroupJoinException(e);
+		}
 	}
 
 	public void shutdown() {
