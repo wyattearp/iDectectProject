@@ -25,7 +25,7 @@ public class NodeTableModel extends AbstractTableModel {
 	}
 	
 	public Node getNodeAtRow(int row) {
-		if (row < this.nodeList.size()) {
+		if ((row >= 0) && (row < this.nodeList.size())) {
 			return this.nodeList.get(row);
 		}
 		return null;

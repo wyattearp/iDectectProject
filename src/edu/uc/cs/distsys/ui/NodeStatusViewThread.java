@@ -25,19 +25,26 @@ public class NodeStatusViewThread implements Runnable {
 		this.getNodeStatusView().getNodePropertiesTableStorage().setNode(this.node);
 		//Set the listener for when a user clicks a given node to update appropriately
 		this.getNodeStatusView().getNodeTable().addMouseListener(new MouseAdapter(){
-		    public void mouseClicked(MouseEvent evnt) {
-		        if (evnt.getClickCount() == 1) {
-		        	int row = getNodeStatusView().getNodeTable().getSelectedRow();
-		        	if (row != -1) {
-			        	Node clickedNode = getNodeStatusView().getNodeTableStorage().getNodeAtRow(row);
-			        	System.out.println("Clicked node: " + clickedNode.toString());
-			        	// set the new data
-			        	getNodeStatusView().getClickedNodeTableStorage().setNode(clickedNode);
-			        	// force the UI update
-			        	getNodeStatusView().getClickedNodeTableStorage().fireTableDataChanged();
-		        	}
-		         }
-		     }
+		    public void mouseClicked(MouseEvent mEvent) {
+		    	// process event
+		    	int row = 0;	    	
+		    	row = getNodeStatusView().getNodeTable().rowAtPoint(mEvent.getPoint());
+		    	System.out.println(row);
+				if (row >= 0) {
+					System.out.println("Selected row: " + row);
+					Node clickedNode = getNodeStatusView().getNodeTableStorage().getNodeAtRow(row);
+					if (clickedNode != null) {
+						System.out.println("Clicked node: " + clickedNode.toString());
+						// set the new data
+						getNodeStatusView().getClickedNodeTableStorage().setNode(clickedNode);
+						// force the UI update
+						getNodeStatusView().getClickedNodeTableStorage().fireTableDataChanged();
+					} else {
+						System.out.println("Node was somehow null");
+					}
+				}
+				mEvent.consume();
+	    	}
 		});
 	}
 
@@ -88,5 +95,5 @@ public class NodeStatusViewThread implements Runnable {
 			this.viewFrame.setTitle(this.defaultTitle);
 		}
 	}
-
+	
 }
