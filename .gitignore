@@ -3,4 +3,4 @@ bin/*
 old/iDetect_wneal/bin/edu/*
 /bin
 *.jar
-
+*.properties
