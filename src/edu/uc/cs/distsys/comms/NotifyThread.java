@@ -73,6 +73,8 @@ public class NotifyThread<T extends Message> implements Runnable {
 					//e.printStackTrace();
 					if (!Thread.currentThread().isInterrupted()) 
 						logger.error("[" + clazz.getSimpleName() + ", " + Thread.currentThread().getId() + "] ERROR: " + e);
+					if (this.commWrapper.isClosed())
+						break;
 				}
 			}
 		} finally {

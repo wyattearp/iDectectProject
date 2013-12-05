@@ -100,7 +100,7 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 		this.incoherentNodes = new LinkedList<Node>();
 		this.heartbeatLock = new ReentrantLock();
 		// load up stored properties if available
-		this.myNode = new Node(nodeName, nodeId);
+		this.myNode = new Node(nodeName, nodeId, NodeState.ONLINE);
 		this.scheduledExecutor = new ScheduledThreadPoolExecutor(1);
 		this.statusViewThread = new NodeStatusViewThread(this.myNode);
 		this.uiThread = new Thread(statusViewThread);
@@ -167,7 +167,7 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 	}
 	
 	@Override
-	public void onFailedNode(Node failed) {
+	public void onFailedNode(Node failed, NodeState oldState) {
 		try {
 			this.heartbeatLock.lock();
 			this.failedNodes.add(failed);
@@ -177,6 +177,9 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 //logger.error("NODE FAILED: " + failed);
 		if (failed.getId() == myNode.getLeaderId())
 			this.electionMgr.onLeaderFailed();
+		if (!oldState.equals(failed.getState())) {
+			this.onNodeStateChanged(failed, oldState);
+		}
 		this.statusViewThread.updateUI();
 	}
 	
@@ -259,15 +262,6 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 			this.consensusPossible = true;
 			this.logger.log("Consensus is possible (have " + numCorrectNodes + "/" + myNode.getNumProcOperating() + " correct nodes)");
 		}
-
-//		int maxFailedNodes = myNode.getNumProcOperating() - (2 * myNode.getNumProcOperating() / 3 + 1);
-//		if (this.incoherentNodes.size() > maxFailedNodes && this.consensusPossible) {
-//			this.consensusPossible = false;
-//			this.logger.log("Consensus is no longer possible");
-//		} else if (! this.consensusPossible) {
-//			this.consensusPossible = true;
-//			this.logger.log("Consensus is now possible");
-//		}
 	}
 	
 	/**
@@ -296,6 +290,10 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 		return numOnlineSameGroupNodes + 1;
 	}
 	
+	public void setNumOperatingProcs(int numProcOperating) {
+		this.myNode.setNumProcOperating(numProcOperating);
+	}
+	
 	private void verifyFailedNode(Node node) {
 		if (node.getId() == this.myNode.getId())
 			return;
@@ -312,12 +310,12 @@ public class DetectMain implements LeaderChangeListener, FailureListener {
 					//update our node
 					localNode.updateState(node);
 					// See if the node's state has changed
-					if (!localNode.getState().equals(oldState)) {
+					if (!localNode.getState().equals(oldState) && ! localNode.isOffline()) {
 						this.onNodeStateChanged(localNode, oldState);
 					}
 					// Check if the node has been marked as failed
 					if (localNode.isOffline())
-						onFailedNode(localNode);
+						onFailedNode(localNode, oldState);
 					// If it was the leader, we need to elect a new one
 //					if (localNode.getId() == myNode.getLeaderId()) {
 //						this.electionMgr.onLeaderFailed();

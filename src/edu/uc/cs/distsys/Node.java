@@ -38,14 +38,18 @@ public class Node implements Serializable {
 		return new Node(null, id, seqNum, 0, 0, state);
 	}
 
-	public Node(String name, int id) {
-		this(name, id, -1, 0, 0, NodeState.UNKNOWN);
+	public Node(int id) {
+		this(null, id);
 	}
 	
-	public Node(int id) {
-		this(null, id, -1, 0, 0, NodeState.UNKNOWN);
-	}
+	public Node(String name, int id) {
+		this(name, id, NodeState.UNKNOWN);
+	}	
 
+	public Node(String name, int id, NodeState initialState) {
+		this(name, id, -1, 0, 0, initialState);
+	}
+	
 	public Node(Heartbeat hb) {
 		this(null, hb.getNodeId(), hb.getSeqNum(), System.currentTimeMillis(), hb
 				.getTimestamp(), NodeState.ONLINE);

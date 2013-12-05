@@ -9,6 +9,7 @@ public interface CommsWrapper<T extends Message> {
 	public void send(T message) throws IOException;
 	public T receive() throws IOException;
 	public void close();
+	public boolean isClosed();
 
 	public void includeNode(Node goodNode);
 	public void excludeNode(Node badNode);

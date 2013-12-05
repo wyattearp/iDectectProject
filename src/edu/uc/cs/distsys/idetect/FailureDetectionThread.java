@@ -28,9 +28,10 @@ final class FailureDetectionThread implements Runnable {
 		try {
 			nodeLock.lock();
 			for (Node node : this.nodes.values()) {
+				NodeState oldState = node.getState();
 				if (node.checkState(curTime).equals(NodeState.OFFLINE)) {
 					for (FailureListener listener : listeners) {
-						listener.onFailedNode(node);
+						listener.onFailedNode(node, oldState);
 					}
 				}
 			}
