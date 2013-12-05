@@ -19,12 +19,14 @@ public class GroupInvitation extends Message {
 	private final int inviteeNodeId;
 	private final int groupId;
 	private final Cookie cookie;
+	private final int requestUid;
 	
-	public GroupInvitation(int senderId, int inviteeId, int groupId, Cookie cookie) {
+	public GroupInvitation(int senderId, int inviteeId, int groupId, Cookie cookie, int requestUid) {
 		super(senderId);
 		this.inviteeNodeId = inviteeId;
 		this.groupId = groupId;
 		this.cookie = cookie;
+		this.requestUid = requestUid;
 	}
 	
 	public int getInviteeId() {
@@ -39,4 +41,7 @@ public class GroupInvitation extends Message {
 		return cookie;
 	}
 	
+	public int getRequestUid() {
+		return requestUid;
+	}
 }

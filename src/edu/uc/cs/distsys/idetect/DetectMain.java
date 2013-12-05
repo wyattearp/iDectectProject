@@ -232,6 +232,10 @@ public class DetectMain implements LeaderChangeListener, FailureListener, NodeSt
 		this.logger.log("Node " + n.getId() + " has changed state from " + oldState + " => " + n.getState());
 		switch(n.getState()) {
 			case ONLINE:
+				if (oldState.equals(NodeState.INCOHERENT)) {
+					this.electionMgr.includeNodeInElections(n);
+				}
+				// Fall through...
 			case OFFLINE:
 				synchronized (this.incoherentNodes) {
 					this.incoherentNodes.remove(n);					
@@ -244,6 +248,9 @@ public class DetectMain implements LeaderChangeListener, FailureListener, NodeSt
 					}
 				}
 				this.electionMgr.excludeNodeFromElections(n);
+				if (n.getId() == myNode.getLeaderId()) {
+					this.electionMgr.startNewElection();
+				}
 				break;
 			case SUSPECT:
 				break;
@@ -265,6 +272,7 @@ public class DetectMain implements LeaderChangeListener, FailureListener, NodeSt
 			setConsensusPossible(true);
 			this.logger.log("Consensus is possible (have " + numCorrectNodes + "/" + myNode.getNumProcOperating() + " correct nodes)");
 		}
+		this.statusViewThread.updateUI();
 	}
 	
 	/**

@@ -153,13 +153,16 @@ logger.error("LEADER FAILED!");
 	
 	@Override
 	public void includeNodeInElections(Node healedNode) {
-		
+		this.electionComms.electionComms.includeNode(healedNode);
+		this.electionComms.electionAnswerComms.includeNode(healedNode);
+		this.electionComms.coordinatorComms.includeNode(healedNode);
 	}
 	
 	@Override
 	public void excludeNodeFromElections(Node badNode) {
-		// TODO Auto-generated method stub
-		
+		this.electionComms.electionComms.excludeNode(badNode);
+		this.electionComms.electionAnswerComms.excludeNode(badNode);
+		this.electionComms.coordinatorComms.excludeNode(badNode);
 	}
 	
 	private class ElectionListener extends MessageHandler<ElectionMessage> {
