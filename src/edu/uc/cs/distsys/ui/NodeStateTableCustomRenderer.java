@@ -17,25 +17,29 @@ public class NodeStateTableCustomRenderer extends DefaultTableCellRenderer {
 	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column)
     {
         Component cellComponent = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-        if(table.getValueAt(row, column).equals(NodeState.UNKNOWN)) {
-            cellComponent.setBackground(Color.WHITE);
-            cellComponent.setForeground(Color.BLACK);
-        } else if(table.getValueAt(row, column).equals(NodeState.ONLINE)) {
-            cellComponent.setBackground(Color.GREEN);
-            cellComponent.setForeground(Color.BLACK);
-        } else if(table.getValueAt(row, column).equals(NodeState.SUSPECT)) {
-        	cellComponent.setBackground(Color.YELLOW);
-        	cellComponent.setForeground(Color.BLACK);
-        } else if(table.getValueAt(row, column).equals(NodeState.OFFLINE)) {
-            cellComponent.setBackground(Color.GRAY);
-            cellComponent.setForeground(Color.BLACK);
-        } else if(table.getValueAt(row, column).equals(NodeState.INCOHERENT)) {
-            cellComponent.setBackground(Color.RED);
-            cellComponent.setForeground(Color.WHITE);
-        } else {
-        	// always reset to default colors
-        	cellComponent.setBackground(Color.WHITE);
-            cellComponent.setForeground(Color.BLACK);
+        try {
+	        if(table.getValueAt(row, column).equals(NodeState.UNKNOWN)) {
+	            cellComponent.setBackground(Color.WHITE);
+	            cellComponent.setForeground(Color.BLACK);
+	        } else if(table.getValueAt(row, column).equals(NodeState.ONLINE)) {
+	            cellComponent.setBackground(Color.GREEN);
+	            cellComponent.setForeground(Color.BLACK);
+	        } else if(table.getValueAt(row, column).equals(NodeState.SUSPECT)) {
+	        	cellComponent.setBackground(Color.YELLOW);
+	        	cellComponent.setForeground(Color.BLACK);
+	        } else if(table.getValueAt(row, column).equals(NodeState.OFFLINE)) {
+	            cellComponent.setBackground(Color.GRAY);
+	            cellComponent.setForeground(Color.BLACK);
+	        } else if(table.getValueAt(row, column).equals(NodeState.INCOHERENT)) {
+	            cellComponent.setBackground(Color.RED);
+	            cellComponent.setForeground(Color.WHITE);
+	        } else {
+	        	// always reset to default colors
+	        	cellComponent.setBackground(Color.WHITE);
+	            cellComponent.setForeground(Color.BLACK);
+	        }
+        } catch (NullPointerException np) {
+        	// not sure why this is null, but just return the basic thing.
         }
 
         return cellComponent;
