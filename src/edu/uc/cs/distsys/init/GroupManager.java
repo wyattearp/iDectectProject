@@ -34,10 +34,10 @@ public class GroupManager {
 				if (GroupManager.this.cookieMappings.containsKey(message.getSenderId())) {
 					if (GroupManager.this.cookieMappings.get(message.getSenderId()).equals(message.getGroupCookie())) {
 						GroupManager.this.logger.log("Node rejoining the group " + message.getSenderId() + " cookie - " + message.getGroupCookie());
-						invite = new GroupInvitation(GroupManager.this.myNode.getId(), message.getSenderId(), 0, message.getGroupCookie());
+						invite = new GroupInvitation(GroupManager.this.myNode.getId(), message.getSenderId(), 0, message.getGroupCookie(), message.getRequestUid());
 					} else {
 						GroupManager.this.logger.log("Rejecting group request from " + message.getSenderId() + " cookie - " + message.getGroupCookie());
-						invite = new GroupInvitation(GroupManager.this.myNode.getId(), message.getSenderId(), 0, Cookie.INVALID_COOKIE);
+						invite = new GroupInvitation(GroupManager.this.myNode.getId(), message.getSenderId(), 0, Cookie.INVALID_COOKIE, message.getRequestUid());
 					}
 				} else {
 					Random r = new Random();
@@ -53,7 +53,7 @@ public class GroupManager {
 					GroupManager.this.cookieMappings.put(message.getSenderId(), newCookie);
 					GroupManager.this.logger.log("Inviting id=" + message.getSenderId() + " to our group");
 					invite = new GroupInvitation(GroupManager.this.myNode.getId(), message.getSenderId(), 
-							GroupManager.this.myNode.getGroupId(), newCookie);
+							GroupManager.this.myNode.getGroupId(), newCookie, message.getRequestUid());
 				}
 				
 				int sendAttemptsLeft = 5;
@@ -80,7 +80,7 @@ public class GroupManager {
 		
 		@Override
 		public void handleMessage(GroupInvitation message) {
-			GroupManager.this.logger.log("RECEIVED INVITE");
+			GroupManager.this.logger.log("RECEIVED INVITE: " + message.getRequestUid());
 			
 			if (message.getInviteeId() == GroupManager.this.myNode.getId()) {
 				GroupManager.this.myInvitations.add(message);
@@ -147,17 +147,12 @@ public class GroupManager {
 	
 	public void locateAndJoinGroup() throws GroupJoinException {
 		myInvitations.clear();
-		GroupRequest request = null;
-		if (myNode.getGroupCookie().equals(Cookie.INVALID_COOKIE)) {
-			request = new GroupRequest(myNode.getId());
-		} else {
-			request = new GroupRequest(myNode.getId(), myNode.getGroupCookie());
-		}
+		GroupInvitation invite = null;
 		
 		try {
-			GroupInvitation invite = null;
 			for (int i = 0; i < NUM_INVITES_TO_SEND; ++i) {
-				logger.log("Sending group join request (attempt #" + (i+1) + ")");
+				GroupRequest request = new GroupRequest(myNode.getId(), myNode.getGroupCookie());
+				logger.log("Sending group join request (attempt #" + (i+1) + ", uid=" + request.getRequestUid() + ")");
 				// Send the group join request
 				this.groupRequestor.send(request);
 				
@@ -197,6 +192,8 @@ public class GroupManager {
 					logger.log("Starting new group (id=" + newGroupId + ")");
 				}
 			} else {
+				//DEBUG
+				logger.log("Got invitation in response to request uid=" + invite.getRequestUid());
 				// Make sure our invite wasn't rejected
 				if (invite.getCookie().equals(Cookie.INVALID_COOKIE)) {
 					throw new GroupJoinException("Failed to join group " + invite.getGroupId() + " (node conflict detected)");

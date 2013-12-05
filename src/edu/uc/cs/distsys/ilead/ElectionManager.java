@@ -11,6 +11,7 @@ public interface ElectionManager extends ElectionThreadListener, LeaderChangeLis
 	public void stop();
 	public void addMonitor(ElectionMonitor newMonitor);
 	
+	// These don't actually do anything useful for now
 	public void includeNodeInElections(Node healedNode);
 	public void excludeNodeFromElections(Node badNode);
 }
