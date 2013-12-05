@@ -61,7 +61,7 @@ public class LeaderTest {
 				node = new DetectMain(nodeName, nodeId, null, numProcOperating);
 			} else {
 				// Create a normal node
-				node = new DetectMain(nodeName, nodeId, null);
+				node = new DetectMain(nodeName, nodeId, null, numNodes);
 			}
 			
 			node.start();

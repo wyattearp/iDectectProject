@@ -26,7 +26,7 @@ public class MaintainConsensusUsingTwoThirdsCorrectNodes extends LeaderTest impl
 	final static String FAILED_MSG = "Req A2 Failed";
 	ConcurrentMap<Integer, ElectionInfo> consensusData;
 	ArrayList<Integer> byzantineNodes;
-	private int numProcOperating;
+	private int byzantineNumProcOperating;
 	
 	@Before
 	public void setup() {
@@ -35,10 +35,10 @@ public class MaintainConsensusUsingTwoThirdsCorrectNodes extends LeaderTest impl
 		byzantineNodes.add(100);
 		byzantineNodes.add(300);
 		byzantineNodes.add(500);
-		numProcOperating = 999;
+		byzantineNumProcOperating = 999;
 		
 		try {
-			this.consensusData = startNodes(numNodes, byzantineNodes, numProcOperating, this, 4000);
+			this.consensusData = startNodes(numNodes, byzantineNodes, byzantineNumProcOperating, this, 4000);
 		} catch (UnknownHostException e) {
 			assertTrue(e.toString(), false);
 		} catch (GroupJoinException e) {
@@ -70,7 +70,7 @@ public class MaintainConsensusUsingTwoThirdsCorrectNodes extends LeaderTest impl
 			if (groupID == 0) {
 				groupID = entry.getValue().node.getMyNode().getGroupId();
 			} else {
-//				assertTrue("Invalid test. All nodes must be in the same group.", groupID == entry.getValue().node.getGroupId());
+				assertTrue("Invalid test. All nodes must be in the same group.", groupID == entry.getValue().node.getGroupId());
 			}
 			
 			System.out.println("Node " + nodeNumber + " believes that there are " + numOnlineNodesInGroup + "/" + numNodesInGroup + " Online nodes in group #" + groupID + " (aware of " + numNodesTotal + " nodes total) Consensus Possble: " + Boolean.toString(entry.getValue().node.isConsensusPossible()));
@@ -101,13 +101,17 @@ public class MaintainConsensusUsingTwoThirdsCorrectNodes extends LeaderTest impl
 		System.out.println("Number of expected Byzantine nodes: " + numExpectedByzantineNodes);
 		assertTrue(numByzantineNodes <= numExpectedByzantineNodes);
 		
-//		System.out.println("Check that consensus is possible");
-//		for (Entry<Integer, ElectionInfo> entry : this.consensusData.entrySet()) {
-//			assertTrue(FAILED_MSG, entry.getValue().node.isConsensusPossible());
-//		}
+		System.out.println("Check that consensus is possible");
+		for (Entry<Integer, ElectionInfo> entry : this.consensusData.entrySet()) {
+			if (entry.getValue().node.getMyNode().getNumProcOperating() == this.consensusData.size()) {
+				assertTrue(FAILED_MSG, entry.getValue().node.isConsensusPossible());
+			} else {
+				// Don't care what this node thinks about consensus, since it is Byzantine and lying to us anyway
+			}
+		}
 		
 		System.out.println("Increase the percentage of Byzantine Nodes");
-		this.consensusData.get(700).node.getMyNode().setNumProcOperating(numProcOperating);
+		this.consensusData.get(700).node.getMyNode().setNumProcOperating(byzantineNumProcOperating);
 
 		// Allow system to stabilize
 		try {
@@ -117,9 +121,9 @@ public class MaintainConsensusUsingTwoThirdsCorrectNodes extends LeaderTest impl
 		}
 
 		System.out.println("Check that consensus is no longer possible");
-//		for (Entry<Integer, ElectionInfo> entry : this.consensusData.entrySet()) {
-//			assertFalse(FAILED_MSG, entry.getValue().node.isConsensusPossible());
-//		}
+		for (Entry<Integer, ElectionInfo> entry : this.consensusData.entrySet()) {
+			assertFalse(FAILED_MSG, entry.getValue().node.isConsensusPossible());
+		}
 		
 		
 		System.out.println(PASSED_MSG);
