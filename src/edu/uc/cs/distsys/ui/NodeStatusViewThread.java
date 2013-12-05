@@ -31,10 +31,10 @@ public class NodeStatusViewThread implements Runnable {
 		    	row = getNodeStatusView().getNodeTable().rowAtPoint(mEvent.getPoint());
 		    	System.out.println(row);
 				if (row >= 0) {
-					System.out.println("Selected row: " + row);
+					//System.out.println("Selected row: " + row);
 					Node clickedNode = getNodeStatusView().getNodeTableStorage().getNodeAtRow(row);
 					if (clickedNode != null) {
-						System.out.println("Clicked node: " + clickedNode.toString());
+						//System.out.println("Clicked node: " + clickedNode.toString());
 						// set the new data
 						getNodeStatusView().getClickedNodeTableStorage().setNode(clickedNode);
 						// force the UI update
