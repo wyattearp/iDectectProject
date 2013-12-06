@@ -27,6 +27,7 @@ abstract public class MessageHandler<T extends Message> implements MessageListen
 	}
 	
 	public void start() {
+		this.messageQueue.clear();
 		this.myThread = Executors.defaultThreadFactory().newThread(this);
 		this.myThread.start();
 	}

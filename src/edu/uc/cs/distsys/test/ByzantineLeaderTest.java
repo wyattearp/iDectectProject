@@ -16,7 +16,7 @@ import edu.uc.cs.distsys.init.GroupJoinException;
 
 public class ByzantineLeaderTest extends LeaderTest implements ElectionMonitor {
 
-	private static final int STARTUP_DELAY = 3000;
+	private static final int STARTUP_DELAY = 1000;
 	final static int NUM_NODES = 12;
 	final static String PASSED_MSG = "Req A5_IT Passed: An incorrect leader shall be detected by correct processes within 1 minute and a new election held to elect a correct process";
 	final static String FAILED_MSG = "Req A5_IT Failed";
