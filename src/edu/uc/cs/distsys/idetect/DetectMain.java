@@ -42,6 +42,8 @@ public class DetectMain implements LeaderChangeListener, FailureListener, NodeSt
 					logger.log("Discovered new node - " + status.getNodeId());
 					Node n = new Node(status, DetectMain.this);
 					DetectMain.this.nodes.put(status.getNodeId(), n);
+					// This is redundant, but it will ensure the consensus info is up-to-date
+					DetectMain.this.onNodeStateChanged(n, NodeState.UNKNOWN);
 					DetectMain.this.statusViewThread.addMonitoredNode(n);
 				} else {
 					logger.debug("Received heartbeat from node " + status.getNodeId());

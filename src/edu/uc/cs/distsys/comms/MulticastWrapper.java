@@ -77,7 +77,7 @@ public class MulticastWrapper<T extends Message> implements CommsWrapper<T> {
 			throw new MessageDroppedException("Outbound packet dropped #" + this.outboundDropped + " of " + this.outboundSent);
 		}
 		this.outboundSent++;
-		MulticastSocket socket = new MulticastSocket();
+		MulticastSocket socket = getMcastSocket();
 		try {
 			msg.setSessionId(sessionId);
 			byte[] rawHb = msg.serialize();
@@ -99,17 +99,13 @@ public class MulticastWrapper<T extends Message> implements CommsWrapper<T> {
 
 		T msg = null;
 		if (this.recvSocket == null) {
-			this.recvSocket = new MulticastSocket(this.port);
-			this.recvSocket.joinGroup(this.mcastGroup);
+			this.recvSocket = getMcastSocket(this.mcastGroup, this.port);
 		}
 		while (msg == null) {
 			byte[] buf = new byte[1500];
 			DatagramPacket packet = new DatagramPacket(buf, buf.length);
 			this.recvSocket.receive(packet);
 			msg = getFilteredMessage(this.messageFactory.create(buf));
-//			msg = this.messageFactory.create(buf);
-//			if (msg != null && msg.getSenderId() == this.myId && msg.getSessionId() == this.sessionId)
-//				msg = null;
 		}
 		if (shouldDropPacket()) {
 			this.inboundDropped++;
@@ -143,6 +139,27 @@ public class MulticastWrapper<T extends Message> implements CommsWrapper<T> {
 	@Override
 	public void excludeNode(Node badNode) {
 		this.excludedNodes.put(badNode.getId(), 0);
+	}
+	
+	private MulticastSocket getMcastSocket(InetAddress mcastGroup, int port) throws UnknownHostException, IOException {
+		MulticastSocket mcastSocket = null;
+		String adapterIP = System.getProperty("adapterip");
+		if (port == 0) {
+			mcastSocket = new MulticastSocket();
+		} else {
+			mcastSocket = new MulticastSocket(port);
+		}
+		if (adapterIP != null) {
+			mcastSocket.setInterface(InetAddress.getByName(adapterIP));
+		}
+		if (mcastGroup != null) {
+			mcastSocket.joinGroup(mcastGroup);
+		}
+		return mcastSocket;
+	}
+	
+	private MulticastSocket getMcastSocket() throws UnknownHostException, IOException {
+		return getMcastSocket(null, 0);
 	}
 	
 	/**
